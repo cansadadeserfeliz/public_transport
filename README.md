@@ -1,1 +1,5 @@
-# public_transport
+# Public transport
+
+## Run the spider
+
+    scrapy crawl sitp

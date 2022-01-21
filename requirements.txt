@@ -1,1 +1,8 @@
 Django==4.0.1
+
+Scrapy==2.5.1
+
+
+black==21.12b0
+flake8==4.0.1
+pre-commit
