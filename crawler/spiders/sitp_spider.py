@@ -47,15 +47,16 @@ class SitpSpider(scrapy.Spider):
         for item in data:
             selector = scrapy.Selector(text=item[0], type='html')
             route_data = {
-                'route_code': selector.css(
+                'code': selector.css(
                     '.containerCodigo .codigoRuta::text'
                 ).get(),
-                'route_name': selector.css(
+                'name': selector.css(
                     '.containerInfoListRuta .rutaNombre::text'
                 )
                 .get()
                 .strip(),
-                'schedules': selector.css(
+                'url': selector.css('.containerInfoListRuta a').attrib['href'],
+                'schedule': selector.css(
                     '.containerInfoListRuta .label-horario::text'
                 ).getall(),
             }

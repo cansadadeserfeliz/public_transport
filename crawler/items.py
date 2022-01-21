@@ -8,5 +8,6 @@ from dataclasses import dataclass
 @dataclass
 class Route:
     code: str
-    title: str
+    name: str
+    url: str
     schedule: list
