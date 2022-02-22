@@ -1,5 +1,9 @@
-# Public transport
+# :oncoming_bus: Public transport
 
-## Run the spider
+## :busstop: Installation
+
+    $ pip install -r requirements.txt
+
+## :bus: Run the spider
 
     scrapy crawl sitp
