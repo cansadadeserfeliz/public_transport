@@ -2,12 +2,11 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
-from dataclasses import dataclass
+
+from scrapy_djangoitem import DjangoItem
+
+from routes.models import Route
 
 
-@dataclass
-class Route:
-    code: str
-    name: str
-    url: str
-    schedule: list
+class RouteItem(DjangoItem):
+    django_model = Route

@@ -17,7 +17,12 @@ class Route(models.Model):
     name = models.CharField(max_length=255)
     code = models.CharField(max_length=50, unique=True)
     route_type = models.CharField(max_length=50, choices=ROUTE_TYPES)
+    schedule = models.CharField(max_length=500)
     map_link = models.URLField(default='')
+    details_link = models.URLField(default='')
+
+    publication_date = models.DateTimeField(null=True)
+    last_update = models.DateTimeField(null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
