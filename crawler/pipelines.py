@@ -2,11 +2,19 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+from routes.models import Route
 
 
 class CrawlerPipeline:
     """Saves Item to the database."""
 
     def process_item(self, item, spider):
-        item.save()
-        return item
+        obj, created = Route.objects.update_or_create(
+            code=item['code'],
+            defaults=dict(
+                name=item['name'],
+                details_link=item['details_link'],
+                schedule=item['schedule'],
+            ),
+        )
+        return obj
