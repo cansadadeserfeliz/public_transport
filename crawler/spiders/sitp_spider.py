@@ -1,5 +1,7 @@
 import scrapy
 
+from crawler.items import RouteItem
+
 
 class SitpSpider(scrapy.Spider):
     name = 'sitp'
@@ -45,22 +47,26 @@ class SitpSpider(scrapy.Spider):
         </div>
         """
         for item in data:
+            route_item = RouteItem()
             selector = scrapy.Selector(text=item[0], type='html')
-            route_data = {
-                'code': selector.css(
-                    '.containerCodigo .codigoRuta::text'
-                ).get(),
-                'name': selector.css(
-                    '.containerInfoListRuta .rutaNombre::text'
-                )
+
+            route_item['code'] = selector.css(
+                '.containerCodigo .codigoRuta::text'
+            ).get()
+            route_item['name'] = (
+                selector.css('.containerInfoListRuta .rutaNombre::text')
                 .get()
-                .strip(),
-                'url': selector.css('.containerInfoListRuta a').attrib['href'],
-                'schedule': selector.css(
+                .strip()
+            )
+            route_item['details_link'] = selector.css(
+                '.containerInfoListRuta a'
+            ).attrib['href']
+            route_item['schedule'] = '; '.join(
+                selector.css(
                     '.containerInfoListRuta .label-horario::text'
-                ).getall(),
-            }
-            yield route_data
+                ).getall()
+            )
+            yield route_item
 
         self.log(
             f"draw: {response_json['draw']}, "
