@@ -14,15 +14,31 @@ class Route(models.Model):
         (ROUTE_TYPE_COMPLEMENTARY, 'Complementario'),
         (ROUTE_TYPE_SPECIAL, 'Especial'),
     )
-    name = models.CharField(max_length=255)
-    code = models.CharField(max_length=50)
+    name = models.CharField(
+        max_length=255,
+        help_text='Example: Auto Norte Estación Alcalá',
+    )
+    code = models.CharField(
+        max_length=50,
+        help_text='Example: 19-1',
+    )
     route_type = models.CharField(max_length=50, choices=ROUTE_TYPES)
-    color = models.CharField(max_length=50, default='')
+    color = models.CharField(
+        max_length=50,
+        default='',
+        help_text='Example: #95B734',
+    )
     schedule = models.CharField(max_length=500)
     map_link = models.URLField(default='')
-    details_link = models.URLField(default='')
+    details_link = models.URLField(
+        default='',
+        help_text='Link to detail page on transmilenio.gov.co.',
+    )
 
-    publication_date = models.DateTimeField(null=True)
+    publication_date = models.DateTimeField(
+        null=True,
+        help_text='Data from transmilenio.gov.co.',
+    )
     last_update = models.DateTimeField(null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -34,3 +50,41 @@ class Route(models.Model):
     class Meta:
         ordering = ['code']
         unique_together = ('code', 'name')
+
+
+class RouteStations(models.Model):
+    DIRECTION_1 = 1
+    DIRECTION_2 = 2
+
+    direction = models.PositiveSmallIntegerField(
+        choices=((DIRECTION_1, 'Recorrido 1'), (DIRECTION_2, 'Recorrido 2')),
+    )
+    position = models.PositiveIntegerField()
+    route = models.ForeignKey(
+        'routes.Route',
+        related_name='route_stations',
+        on_delete=models.PROTECT,
+    )
+    bus_station = models.ForeignKey(
+        'routes.BusStation',
+        related_name='route_stations',
+        on_delete=models.PROTECT,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['direction', 'position']
+
+
+class BusStation(models.Model):
+    name = models.CharField(max_length=150)
+    code = models.CharField(max_length=30, unique=True)
+    link = models.URLField(default='')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
