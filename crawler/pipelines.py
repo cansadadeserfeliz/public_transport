@@ -17,4 +17,7 @@ class CrawlerPipeline:
                 schedule=item['schedule'],
             ),
         )
+
+        save_status_str = 'created' if created else 'updated'
+        spider.log(f'=== Route {obj.code} was {save_status_str}')
         return obj

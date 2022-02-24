@@ -1,4 +1,5 @@
 import urllib.parse
+from typing import Union
 
 import scrapy
 
@@ -7,26 +8,47 @@ from crawler.items import RouteItem
 
 class SitpSpider(scrapy.Spider):
     name = 'sitp'
-    routes_url_params = urllib.parse.urlencode(
-        {
-            'lServicio': 'Rutas',
-            'lTipo': 'busqueda',
-            'lFuncion': 'lstRutasAjax',
-            'draw': 1,
-            'columns[0][data]': 0,
-            'columns[0][searchable]': True,
-            'columns[0][orderable]': False,
-            'columns[0][search][regex]': False,
-            'start': 0,
-            'length': 20,
-            'search[regex]': False,
-            '_': 1642795202244,
-        }
-    )
+    routes_pagination_start = 0
+    routes_pagination_draw = 1
+    routes_pagination_length = 20
+    routes_url_params = {
+        'lServicio': 'Rutas',
+        'lTipo': 'busqueda',
+        'lFuncion': 'lstRutasAjax',
+        'draw': routes_pagination_draw,
+        'columns[0][data]': 0,
+        'columns[0][searchable]': True,
+        'columns[0][orderable]': False,
+        'columns[0][search][regex]': False,
+        'start': routes_pagination_start,
+        'length': routes_pagination_length,
+        'search[regex]': False,
+        '_': 1642795202244,
+    }
+    routes_base_url = 'https://www.transmilenio.gov.co/loader.php'
 
     start_urls = [
-        'https://www.transmilenio.gov.co/loader.php?%s' % routes_url_params
+        f'{routes_base_url}?{urllib.parse.urlencode(routes_url_params)}'
     ]
+
+    def get_next_routes_url(self, total_records: int) -> Union[str, None]:
+        self.routes_pagination_start = (
+            self.routes_pagination_start + self.routes_pagination_length
+        )
+        self.log(
+            f'---> pagination start: {self.routes_pagination_start} '
+            f'-> total_records: {total_records}'
+        )
+        if self.routes_pagination_start > total_records:
+            return None
+
+        self.routes_url_params['draw'] = self.routes_url_params['draw'] + 1
+        self.routes_url_params['start'] = self.routes_pagination_start
+        next_routes_url = (
+            f'{self.routes_base_url}?'
+            f'{urllib.parse.urlencode(self.routes_url_params)}'
+        )
+        return next_routes_url
 
     def parse(self, response):
         response_json = response.json()
@@ -79,6 +101,12 @@ class SitpSpider(scrapy.Spider):
                 ).getall()
             )
             yield route_item
+
+        next_page = self.get_next_routes_url(
+            total_records=int(response_json['recordsFiltered']),
+        )
+        if next_page is not None:
+            yield response.follow(next_page, self.parse)
 
         self.log(
             f"draw: {response_json['draw']}, "
