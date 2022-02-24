@@ -8,6 +8,7 @@
       <th scope="col">Code</th>
       <th scope="col">Name</th>
       <th scope="col">Type</th>
+      <th scope="col">More info</th>
     </tr>
   </thead>
   <tbody>
@@ -21,6 +22,11 @@
       </td>
       <td>{{ route.name }}</td>
       <td>{{ route.get_route_type_display }}</td>
+      <td>
+        <a href="{% url 'routes:route_detail' route.id %}">
+          <i class="fa-solid fa-eye"></i>
+        </a>
+      </td>
     </tr>
   {% endfor %}
   </tbody>

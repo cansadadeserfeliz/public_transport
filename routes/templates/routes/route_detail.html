@@ -1,0 +1,42 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+<ul class="list-group">
+  <li class="list-group-item">
+    <span style="border-left: none; border-bottom: 5px solid {{ route.color }};">
+      {{ route.code }}
+    </span>
+  </li>
+  <li class="list-group-item">{{ route.name }}</li>
+</ul>
+
+<hr class="m2">
+
+<div class="row">
+{% for route_station_group in route_station_groups %}
+  <div class="col">
+    <div>Recorrido {{ forloop.counter }}</div>
+    <table class="table table-sm">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Code</th>
+          <th scope="col">Name</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for route_station in route_station_group %}
+        <tr>
+          <th scope="row">{{ route_station.position }}</th>
+          <td>{{ route_station.bus_station.code }}</td>
+          <td>{{ route_station.bus_station.name }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endfor %}
+</div>
+
+{% endblock content %}
