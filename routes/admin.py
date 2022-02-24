@@ -6,7 +6,13 @@ from .models import Route
 
 @admin.register(Route)
 class RouteAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code_display', 'route_type')
+    list_display = (
+        'name',
+        'code_display',
+        'route_type',
+        'created_at',
+        'updated_at',
+    )
 
     def code_display(self, obj):
         return mark_safe(
