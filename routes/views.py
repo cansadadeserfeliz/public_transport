@@ -34,3 +34,4 @@ class RouteDetailView(DetailView):
 
 class BusStationsListView(ListView):
     model = BusStation
+    paginate_by = 100
