@@ -27,7 +27,6 @@ class CrawlerPipeline:
             print(f"route type: /{item['route_type']}/")
 
         if not item['color'] and route_type:
-
             colors_map = {
                 Route.ROUTE_TYPE_URBAN: '#00608B',
                 Route.ROUTE_TYPE_SHUTTLE: '#376530',
