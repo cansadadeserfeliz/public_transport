@@ -9,3 +9,7 @@
 ## :bus: Run the spider
 
     scrapy crawl sitp
+
+## :pin: Run server
+
+    python manage.py runserver
