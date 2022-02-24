@@ -1,3 +1,4 @@
+import re
 from typing import List
 from datetime import time
 from dataclasses import dataclass
@@ -33,3 +34,19 @@ def parse_schedule(schedule_str: str) -> Schedule:
         start_time=start_time,
         end_time=end_time,
     )
+
+
+def parse_route_color(route_style_str: str) -> str:
+    """
+    Args:
+        route_style_str: a string that CSS styles for a route.
+
+        Examples:
+            border-bottom: 10px solid ;
+            border-bottom: 10px solid #3D9CD7;
+            border-bottom: 10px solid #D88C00;
+    """
+    match = re.search(r'#(?:[0-9a-fA-F]{3}){1,2}', route_style_str)
+    if match:
+        return match.group()
+    return ''

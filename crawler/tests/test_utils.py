@@ -2,6 +2,7 @@ from datetime import time
 
 from ..utlis import Schedule
 from ..utlis import parse_schedule
+from ..utlis import parse_route_color
 
 
 def test_parse_saturday_schedule():
@@ -30,3 +31,25 @@ def test_parse_sunday_schedule():
     assert schedule.weekdays == [7]
     assert schedule.start_time == time(5, 00)
     assert schedule.end_time == time(22, 00)
+
+
+def test_parse_route_color_with_no_color():
+    color = parse_route_color('border-bottom: 10px solid ;')
+    assert color == ''
+
+
+def test_parse_route_color_with_color():
+    color = parse_route_color('border-bottom: 10px solid #D88C00;')
+    assert color == '#D88C00'
+
+
+def test_parse_route_color_with_multiple_colors():
+    color = parse_route_color(
+        'border-bottom: 10px solid #3D9CD7; color: #D88C00;'
+    )
+    assert color == '#3D9CD7'
+
+
+def test_parse_route_color_with_empty_input_string():
+    color = parse_route_color('')
+    assert color == ''

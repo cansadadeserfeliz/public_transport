@@ -1,9 +1,11 @@
 import urllib.parse
 from typing import Union
+import logging
 
 import scrapy
 
 from crawler.items import RouteItem
+from crawler.utlis import parse_route_color
 
 
 class SitpSpider(scrapy.Spider):
@@ -53,33 +55,6 @@ class SitpSpider(scrapy.Spider):
     def parse(self, response):
         response_json = response.json()
         data = response_json['data']
-
-        """
-        <div class="containerCodigo" style="border-left: none;">
-           <div data-ss="tr"
-              class="codigoRuta "
-              style="border-bottom: 10px solid ;">12</div>
-        </div>
-        <div class="containerInfoListRuta">
-           <a title="Fontibón San Pablo - Porciúncula" target="_blank"
-              class="rutaNombre "
-              href="https://www.transmilenio.gov.co/Rutas/servicio_troncal/
-              12_fontibn_san_pablo_porcincula">
-            Fontibón San Pablo - Porciúncula
-           </a>
-           <br>
-           <p title="Lunes a S&aacute;bado 04:00 AM - 11:00 PM"
-            class="label label-horario">
-                L-S            | 04:00 AM            - 11:00 PM
-           </p>
-           &nbsp;
-           <p title="Domingo y Festivo 05:00 AM - 10:00 PM"
-            class="label label-horario">
-                D-F            | 05:00 AM            - 10:00 PM
-           </p>
-           &nbsp;
-        </div>
-        """
         for item in data:
             route_item = RouteItem()
             selector = scrapy.Selector(text=item[0], type='html')
@@ -87,6 +62,9 @@ class SitpSpider(scrapy.Spider):
             route_item['code'] = selector.css(
                 '.containerCodigo .codigoRuta::text'
             ).get()
+            route_item['color'] = parse_route_color(
+                selector.css('.containerCodigo .codigoRuta').attrib['style']
+            )
             route_item['name'] = (
                 selector.css('.containerInfoListRuta .rutaNombre::text')
                 .get()
@@ -100,16 +78,78 @@ class SitpSpider(scrapy.Spider):
                     '.containerInfoListRuta .label-horario::text'
                 ).getall()
             )
+            route_item['route_type'] = ''
             yield route_item
+            yield scrapy.Request(
+                route_item['details_link'],
+                callback=self.parse_route_detail_proxy_page,
+                meta={'route_item': route_item},
+            )
 
         next_page = self.get_next_routes_url(
             total_records=int(response_json['recordsFiltered']),
         )
         if next_page is not None:
-            yield response.follow(next_page, self.parse)
+            yield response.follow(
+                next_page,
+                self.parse,
+            )
 
         self.log(
             f"draw: {response_json['draw']}, "
             f"recordsTotal: {response_json['recordsTotal']}, "
             f"recordsFiltered: {response_json['recordsFiltered']}"
         )
+
+    def parse_route_detail_proxy_page(self, response):
+        script_pattern = r'var detailUrl = \'(.*)\'\.replace.*;\n'
+        details_url = (
+            response.css('script:contains("detailUrl")::text')
+            .re_first(script_pattern)
+            .replace('&amp;', '&')
+        )
+        yield response.follow(
+            details_url,
+            self.parse_route_detail_page,
+            meta={'route_item': response.meta['route_item']},
+        )
+
+    @staticmethod
+    def parse_route_station(station_data):
+        return {
+            'name': station_data.css('.estNombre::text').get(),
+            'code': station_data.css('.estDireccion::text').get(),
+        }
+
+    def parse_route_detail_page(self, response):
+        route_item = response.meta['route_item']
+        code = response.css('.codigoRuta::text').get()
+        if route_item['code'] != code:
+            self.log(
+                f'Route code does not match: {route_item["code"]} != {code}',
+                level=logging.ERROR,
+            )
+        route_item['route_type'] = response.css(
+            '.nombretipoRutaInfo::text',
+        ).get()
+
+        # TODO: save response.css('.rutaEstacionesNombre::text').get()
+        # Example: Metrovivienda - Casablanca Norte
+
+        # TODO: save response.css('.fechas_pub_mod span::text').getall()
+        # Example: ['&Uacuteltima actualización  :', '30/10/2019']
+
+        directions = response.css('.checkSentido::text').getall()
+        if directions:
+            for station in response.css(
+                '.recorrido .recorrido1 .estacionRecorrido'
+            ):
+                route_item['route_1'] = self.parse_route_station(station)
+            for station in response.css(
+                '.recorrido .recorrido2 .estacionRecorrido'
+            ):
+                route_item['route_2'] = self.parse_route_station(station)
+        else:
+            for station in response.css('.recorrido .recorrido1'):
+                route_item['route_1'] = self.parse_route_station(station)
+        yield route_item
