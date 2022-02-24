@@ -15,8 +15,9 @@ class Route(models.Model):
         (ROUTE_TYPE_SPECIAL, 'Especial'),
     )
     name = models.CharField(max_length=255)
-    code = models.CharField(max_length=50, unique=True)
+    code = models.CharField(max_length=50)
     route_type = models.CharField(max_length=50, choices=ROUTE_TYPES)
+    color = models.CharField(max_length=50, default='')
     schedule = models.CharField(max_length=500)
     map_link = models.URLField(default='')
     details_link = models.URLField(default='')
@@ -32,3 +33,4 @@ class Route(models.Model):
 
     class Meta:
         ordering = ['code']
+        unique_together = ('code', 'name')
