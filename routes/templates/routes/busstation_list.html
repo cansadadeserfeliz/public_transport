@@ -1,0 +1,22 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Code</th>
+      <th scope="col">Name</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for bus_station in busstation_list %}
+    <tr>
+      <th scope="row">{{ forloop.counter }}</th>
+      <td>{{ bus_station.code }}</td>
+      <td>{{ bus_station.name }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock content %}

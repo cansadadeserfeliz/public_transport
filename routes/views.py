@@ -1,8 +1,10 @@
 from django.views.generic import TemplateView
 from django.views.generic import DetailView
+from django.views.generic import ListView
 
 from .models import Route
 from .models import RouteStations
+from .models import BusStation
 
 
 class HomeView(TemplateView):
@@ -28,3 +30,7 @@ class RouteDetailView(DetailView):
         ).all()
         context['route_station_groups'] = [route_1, route_2]
         return context
+
+
+class BusStationsListView(ListView):
+    model = BusStation
