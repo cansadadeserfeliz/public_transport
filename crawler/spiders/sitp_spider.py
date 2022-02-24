@@ -1,3 +1,5 @@
+import urllib.parse
+
 import scrapy
 
 from crawler.items import RouteItem
@@ -5,15 +7,25 @@ from crawler.items import RouteItem
 
 class SitpSpider(scrapy.Spider):
     name = 'sitp'
+    routes_url_params = urllib.parse.urlencode(
+        {
+            'lServicio': 'Rutas',
+            'lTipo': 'busqueda',
+            'lFuncion': 'lstRutasAjax',
+            'draw': 1,
+            'columns[0][data]': 0,
+            'columns[0][searchable]': True,
+            'columns[0][orderable]': False,
+            'columns[0][search][regex]': False,
+            'start': 0,
+            'length': 20,
+            'search[regex]': False,
+            '_': 1642795202244,
+        }
+    )
 
     start_urls = [
-        'https://www.transmilenio.gov.co/loader.php?'
-        'lServicio=Rutas&lTipo=busqueda&lFuncion=lstRutasAjax'
-        '&draw=1&columns%5B0%5D%5Bdata%5D=0'
-        '&columns%5B0%5D%5Bsearchable%5D=true'
-        '&columns%5B0%5D%5Borderable%5D=false'
-        '&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false'
-        '&start=40&length=20&search%5Bregex%5D=false&_=1642795202244',
+        'https://www.transmilenio.gov.co/loader.php?%s' % routes_url_params
     ]
 
     def parse(self, response):
