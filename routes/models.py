@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 
 
 class Route(models.Model):
@@ -88,3 +89,6 @@ class BusStation(models.Model):
 
     def __str__(self):
         return self.code
+
+    def get_absolute_url(self):
+        return reverse('routes:bus_station_detail', args=[self.id])

@@ -1,0 +1,37 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<ul class="list-group">
+  <li class="list-group-item">Code: {{ busstation.code }}</li>
+  <li class="list-group-item">Name: {{ busstation.name }}</li>
+</ul>
+
+<hr class="m2">
+
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Route Code</th>
+      <th scope="col">Route Name</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for route_station in busstation.route_stations.all %}
+    <tr>
+      <th scope="row">{{ forloop.counter }}</th>
+      <td>
+        <span style="border-left: none; border-bottom: 5px solid {{ route_station.route.color }};">
+          {{ route_station.route.code }}
+        </span>
+      </td>
+      <td>
+        <a href="{% url 'routes:route_detail' route_station.route.id %}">
+          {{ route_station.route.name }}
+        </a>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock content %}
