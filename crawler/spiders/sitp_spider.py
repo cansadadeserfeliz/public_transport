@@ -4,6 +4,7 @@ from typing import Union
 import scrapy
 
 from crawler.items import RouteItem
+from crawler.utlis import parse_route_color
 
 
 class SitpSpider(scrapy.Spider):
@@ -87,6 +88,9 @@ class SitpSpider(scrapy.Spider):
             route_item['code'] = selector.css(
                 '.containerCodigo .codigoRuta::text'
             ).get()
+            route_item['color'] = parse_route_color(
+                selector.css('.containerCodigo .codigoRuta').attrib['style']
+            )
             route_item['name'] = (
                 selector.css('.containerInfoListRuta .rutaNombre::text')
                 .get()
