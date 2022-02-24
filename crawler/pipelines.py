@@ -11,8 +11,8 @@ class CrawlerPipeline:
     def process_item(self, item, spider):
         obj, created = Route.objects.update_or_create(
             code=item['code'],
+            name=item['name'],
             defaults=dict(
-                name=item['name'],
                 details_link=item['details_link'],
                 schedule=item['schedule'],
             ),
