@@ -30,7 +30,11 @@
         <tr>
           <th scope="row">{{ route_station.position }}</th>
           <td>{{ route_station.bus_station.code }}</td>
-          <td>{{ route_station.bus_station.name }}</td>
+          <td>
+            <a href="{{ route_station.bus_station.get_absolute_url }}">
+              {{ route_station.bus_station.name }}
+            </a>
+          </td>
         </tr>
       {% endfor %}
       </tbody>
