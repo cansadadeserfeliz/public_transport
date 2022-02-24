@@ -33,8 +33,8 @@ class Command(BaseCommand):
             bus_station.cenefa = properties['cenefa']
             bus_station.name = properties['nombre_paradero']
             bus_station.audio = properties['audio_paradero']
-            bus_station.longitud = properties['longitud_paradero']
-            bus_station.latitud = properties['latitud_paradero']
+            bus_station.longitude = properties['longitud_paradero']
+            bus_station.latitude = properties['latitud_paradero']
             bus_station.save()
             self.stdout.write(
                 self.style.SUCCESS(
