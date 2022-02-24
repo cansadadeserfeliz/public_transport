@@ -75,7 +75,7 @@ class RouteStations(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['direction', 'position']
+        ordering = ['route', 'direction', 'position']
 
 
 class BusStation(models.Model):
@@ -87,4 +87,4 @@ class BusStation(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return self.code

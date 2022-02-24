@@ -1,0 +1,38 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Code</th>
+      <th scope="col">Name</th>
+      <th scope="col">Type</th>
+      <th scope="col">More info</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for route in route_list %}
+    <tr>
+      <th scope="row">{{ forloop.counter }}</th>
+      <td>
+        <span style="border-left: none; border-bottom: 5px solid {{ route.color }};">
+          {{ route.code }}
+        </span>
+      </td>
+      <td>
+        <a href="{% url 'routes:route_detail' route.id %}">
+          {{ route.name }}
+        </a>
+      </td>
+      <td>{{ route.get_route_type_display }}</td>
+      <td>
+        <a href="{% url 'routes:route_detail' route.id %}">
+          <i class="fa-solid fa-eye"></i>
+        </a>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock content %}
