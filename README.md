@@ -10,6 +10,6 @@
 
     scrapy crawl sitp
 
-## :pin: Run server
+## :roller_coaster: Run server
 
     python manage.py runserver
