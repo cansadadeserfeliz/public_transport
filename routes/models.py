@@ -84,6 +84,11 @@ class BusStation(models.Model):
     code = models.CharField(max_length=30, unique=True)
     link = models.URLField(default='')
 
+    cenefa = models.CharField(max_length=50, blank=True)
+    audio = models.CharField(max_length=255, blank=True)
+    longitud = models.DecimalField(null=True, max_digits=30, decimal_places=15)
+    latitud = models.DecimalField(null=True, max_digits=30, decimal_places=15)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
