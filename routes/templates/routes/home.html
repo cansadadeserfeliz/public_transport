@@ -20,7 +20,11 @@
           {{ route.code }}
         </span>
       </td>
-      <td>{{ route.name }}</td>
+      <td>
+        <a href="{% url 'routes:route_detail' route.id %}">
+          {{ route.name }}
+        </a>
+      </td>
       <td>{{ route.get_route_type_display }}</td>
       <td>
         <a href="{% url 'routes:route_detail' route.id %}">
