@@ -54,9 +54,9 @@ class CrawlerPipeline:
 
             for i, station_item in enumerate(item['route_1'], start=1):
                 bus_station, _ = BusStation.objects.update_or_create(
-                    code=item['route_1']['code'],
+                    code=station_item['code'],
                     defaults=dict(
-                        name=item['route_1']['name'],
+                        name=station_item['name'],
                     ),
                 )
                 RouteStations.objects.create(
@@ -69,9 +69,9 @@ class CrawlerPipeline:
         if 'route_2' in item:
             for i, station_item in enumerate(item['route_2'], start=1):
                 bus_station, _ = BusStation.objects.update_or_create(
-                    code=item['route_2']['code'],
+                    code=station_item['code'],
                     defaults=dict(
-                        name=item['route_2']['name'],
+                        name=station_item['name'],
                     ),
                 )
                 RouteStations.objects.create(
