@@ -83,6 +83,7 @@ class BusStation(models.Model):
     name = models.CharField(max_length=150)
     code = models.CharField(max_length=30, unique=True)
     link = models.URLField(default='')
+    address = models.CharField(max_length=255, default='')
 
     cenefa = models.CharField(max_length=50, blank=True)
     audio = models.CharField(max_length=255, blank=True)
