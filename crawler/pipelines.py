@@ -21,8 +21,19 @@ class CrawlerPipeline:
             'Especiales': Route.ROUTE_TYPE_SPECIAL,
             'Complementarias': Route.ROUTE_TYPE_COMPLEMENTARY,
         }
+        route_type = route_type_map.get(item['route_type'], '')
+
         if item['route_type'] and item['route_type'] not in route_type_map:
             print(f"route type: /{item['route_type']}/")
+
+        if not item['color'] and route_type:
+            colors_map = {
+                Route.ROUTE_TYPE_URBAN: '#00608B',
+                Route.ROUTE_TYPE_SHUTTLE: '#376530',
+                Route.ROUTE_TYPE_COMPLEMENTARY: '#D07400',
+                Route.ROUTE_TYPE_SPECIAL: '#6C102D',
+            }
+            item['color'] = colors_map.get(route_type, '')
 
         route_obj, created = Route.objects.update_or_create(
             code=code,
@@ -31,7 +42,7 @@ class CrawlerPipeline:
                 details_link=item['details_link'],
                 schedule=item['schedule'],
                 color=item['color'],
-                route_type=route_type_map.get(item['route_type'], ''),
+                route_type=route_type,
             ),
         )
 
@@ -43,9 +54,9 @@ class CrawlerPipeline:
 
             for i, station_item in enumerate(item['route_1'], start=1):
                 bus_station, _ = BusStation.objects.update_or_create(
-                    code=item['route_1']['code'],
+                    code=station_item['code'],
                     defaults=dict(
-                        name=item['route_1']['name'],
+                        name=station_item['name'],
                     ),
                 )
                 RouteStations.objects.create(
@@ -58,9 +69,9 @@ class CrawlerPipeline:
         if 'route_2' in item:
             for i, station_item in enumerate(item['route_2'], start=1):
                 bus_station, _ = BusStation.objects.update_or_create(
-                    code=item['route_2']['code'],
+                    code=station_item['code'],
                     defaults=dict(
-                        name=item['route_2']['name'],
+                        name=station_item['name'],
                     ),
                 )
                 RouteStations.objects.create(

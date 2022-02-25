@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 
 
 class Route(models.Model):
@@ -83,8 +84,18 @@ class BusStation(models.Model):
     code = models.CharField(max_length=30, unique=True)
     link = models.URLField(default='')
 
+    cenefa = models.CharField(max_length=50, blank=True)
+    audio = models.CharField(max_length=255, blank=True)
+    longitude = models.DecimalField(
+        null=True, max_digits=30, decimal_places=15
+    )
+    latitude = models.DecimalField(null=True, max_digits=30, decimal_places=15)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.code
+
+    def get_absolute_url(self):
+        return reverse('routes:bus_station_detail', args=[self.id])

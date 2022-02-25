@@ -141,15 +141,18 @@ class SitpSpider(scrapy.Spider):
 
         directions = response.css('.checkSentido::text').getall()
         if directions:
+            route_item['route_1'] = []
             for station in response.css(
                 '.recorrido .recorrido1 .estacionRecorrido'
             ):
-                route_item['route_1'] = self.parse_route_station(station)
+                route_item['route_1'].append(self.parse_route_station(station))
+            route_item['route_2'] = []
             for station in response.css(
                 '.recorrido .recorrido2 .estacionRecorrido'
             ):
-                route_item['route_2'] = self.parse_route_station(station)
+                route_item['route_2'].append(self.parse_route_station(station))
         else:
+            route_item['route_1'] = []
             for station in response.css('.recorrido .recorrido1'):
-                route_item['route_1'] = self.parse_route_station(station)
+                route_item['route_1'].append(self.parse_route_station(station))
         yield route_item

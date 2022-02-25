@@ -1,0 +1,64 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<ul class="list-group">
+  <li class="list-group-item">Code: {{ busstation.code }}</li>
+  <li class="list-group-item">Name: {{ busstation.name }}</li>
+  <li class="list-group-item">cenefa: {{ busstation.cenefa }}</li>
+  <li class="list-group-item">audio: {{ busstation.audio }}</li>
+  <li class="list-group-item">longitude: {{ busstation.longitude }}</li>
+  <li class="list-group-item">latitude: {{ busstation.latitude }}</li>
+</ul>
+
+<hr class="m2">
+
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Route Code</th>
+      <th scope="col">Route Name</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for route_station in busstation.route_stations.all %}
+    <tr>
+      <th scope="row">{{ forloop.counter }}</th>
+      <td>
+        <span style="border-left: none; border-bottom: 5px solid {{ route_station.route.color }};">
+          {{ route_station.route.code }}
+        </span>
+      </td>
+      <td>
+        <a href="{% url 'routes:route_detail' route_station.route.id %}">
+          {{ route_station.route.name }}
+        </a>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<div id='map' style='width: 100%; height: 500px;'></div>
+
+
+<script type="text/javascript">
+  mapboxgl.accessToken = 'pk.eyJ1IjoidmVybzRrYSIsImEiOiJjYWNlMWY0Zjk0MGJhNWRmNDIzNmVjNjc0NDRhMjllOCJ9.fRmHavGBvl6wWemwMZBbfA';
+  const map = new mapboxgl.Map({
+    container: 'map', // container ID
+    style: 'mapbox://styles/mapbox/streets-v11', // style URL
+    center: [-74.072092, 4.7109886], // starting position [lng, lat]
+    zoom: 9 // starting zoom
+  });
+{% if busstation.longitude and busstation.latitude %}
+  // Create a default Marker and add it to the map.
+  const marker = new mapboxgl.Marker()
+    .setLngLat([{{ busstation.longitude }}, {{ busstation.latitude }}])
+    .addTo(map);
+  map.flyTo({
+    center: marker.getLngLat(),
+    zoom: 17
+  });
+{% endif %}
+</script>
+{% endblock content %}
