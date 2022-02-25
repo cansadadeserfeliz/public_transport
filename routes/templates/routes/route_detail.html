@@ -13,6 +13,10 @@
 
 <hr class="m2">
 
+<div id='map' style='width: 100%; height: 700px;'></div>
+
+<hr class="m2">
+
 <div class="row">
 {% for route_station_group in route_station_groups %}
   <div class="col">
@@ -43,4 +47,47 @@
 {% endfor %}
 </div>
 
+<script type="text/javascript">
+  mapboxgl.accessToken = 'pk.eyJ1IjoidmVybzRrYSIsImEiOiJjYWNlMWY0Zjk0MGJhNWRmNDIzNmVjNjc0NDRhMjllOCJ9.fRmHavGBvl6wWemwMZBbfA';
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v11',
+    center: [-74.072092, 4.7109886],
+    zoom: 11
+  });
+
+{% for route_station_group in route_station_groups %}
+  const layer{{ forloop.counter }} = {
+    'id': 'route{{ forloop.counter }}',
+    'type': 'line',
+    'source': 'route{{ forloop.counter }}',
+    'layout': {
+      'line-join': 'round',
+      'line-cap': 'round'
+    },
+    'paint': {
+      'line-color': '#888',
+      'line-width': 3
+    }
+  }
+  map.on('load', () => {
+    map.addSource('route{{ forloop.counter }}', {
+      'type': 'geojson',
+      'data': {
+        'type': 'Feature',
+        'properties': {},
+        'geometry': {
+          'type': 'LineString',
+          'coordinates': [
+          {% for route_station in route_station_group %}
+            [{{ route_station.bus_station.longitude }}, {{ route_station.bus_station.latitude }}]{% if not forloop.last %},{% endif %}
+          {% endfor %}
+          ]
+        }
+      }
+    });
+    map.addLayer(layer{{ forloop.counter }});
+  });
+{% endfor %}
+</script>
 {% endblock content %}
