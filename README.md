@@ -10,6 +10,10 @@
 
     scrapy crawl sitp
 
+Load additional data for bus stations from geojson file:
+
+    python manage.py load_bus_stations
+
 ## :roller_coaster: Run server
 
     python manage.py runserver
