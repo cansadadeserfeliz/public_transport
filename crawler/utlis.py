@@ -46,7 +46,14 @@ def parse_route_color(route_style_str: str) -> str:
             border-bottom: 10px solid #3D9CD7;
             border-bottom: 10px solid #D88C00;
     """
-    match = re.search(r'#(?:[0-9a-fA-F]{3}){1,2}', route_style_str)
+    match = re.search(r'#(?:[0-9a-fA-Z]{3}){1,2}', route_style_str)
     if match:
         return match.group()
+    return ''
+
+
+def parse_station_unique_id(station_title_str: str) -> str:
+    match = re.search(r'Paradero\s(?P<code>[0-9A-Z]{6})\s', station_title_str)
+    if match:
+        return match.group('code')
     return ''
