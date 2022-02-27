@@ -85,6 +85,7 @@ class BusStation(models.Model):
     link = models.URLField(default='')
     address = models.CharField(max_length=255, default='')
 
+    transmilenio_id = models.IntegerField(null=True)
     cenefa = models.CharField(max_length=50, blank=True)
     audio = models.CharField(max_length=255, blank=True)
     longitude = models.DecimalField(
