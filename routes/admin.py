@@ -34,6 +34,7 @@ class BusStationAdmin(admin.ModelAdmin):
     list_display = (
         'code',
         'name',
+        'link',
         'created_at',
         'updated_at',
     )

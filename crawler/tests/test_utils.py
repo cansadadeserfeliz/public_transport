@@ -3,6 +3,7 @@ from datetime import time
 from ..utlis import Schedule
 from ..utlis import parse_schedule
 from ..utlis import parse_route_color
+from ..utlis import parse_station_unique_id
 
 
 def test_parse_saturday_schedule():
@@ -53,3 +54,18 @@ def test_parse_route_color_with_multiple_colors():
 def test_parse_route_color_with_empty_input_string():
     color = parse_route_color('')
     assert color == ''
+
+
+def test_parse_station_unique_id_example_1():
+    result = parse_station_unique_id('Paradero 553A01 - Br. Cedritos')
+    assert result == '553A01'
+
+
+def test_parse_station_unique_id_example_2():
+    result = parse_station_unique_id('Paradero TM0125 - Ciudad Universitaria')
+    assert result == 'TM0125'
+
+
+def test_parse_station_unique_id_example_3():
+    result = parse_station_unique_id(' Paradero TM0124 - Concejo de Bogotá ')
+    assert result == 'TM0124'

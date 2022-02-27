@@ -11,6 +11,7 @@ from routes.models import Route
 
 class BusStationItem(DjangoItem):
     django_model = BusStation
+    follow_link = scrapy.Field()
 
 
 class RouteItem(DjangoItem):

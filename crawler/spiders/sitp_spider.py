@@ -1,3 +1,4 @@
+import re
 import urllib.parse
 from typing import Union
 import logging
@@ -5,7 +6,9 @@ import logging
 import scrapy
 
 from crawler.items import RouteItem
+from crawler.items import BusStationItem
 from crawler.utlis import parse_route_color
+from crawler.utlis import parse_station_unique_id
 
 
 class SitpSpider(scrapy.Spider):
@@ -114,12 +117,47 @@ class SitpSpider(scrapy.Spider):
             meta={'route_item': response.meta['route_item']},
         )
 
-    @staticmethod
-    def parse_route_station(station_data):
+    def parse_route_station(self, station_data):
+        station_url = station_data.css('.estNombre a::attr(href)').get()
+
+        transmilenio_id = None
+        follow_link = ''
+        if station_url:
+            transmilenio_id = urllib.parse.parse_qs(
+                urllib.parse.urlparse(station_url).query
+            ).get('estacion')
+            if transmilenio_id:
+                transmilenio_id = int(transmilenio_id[0])
+            if transmilenio_id:
+                url_params = {
+                    'lServicio': 'Rutas',
+                    'lTipo': 'busqueda',
+                    'lFuncion': 'paradas',
+                    'paradero': int(transmilenio_id),
+                }
+                follow_link = (
+                    f'{self.routes_base_url}?'
+                    f'{urllib.parse.urlencode(url_params)}'
+                )
+
         return {
             'name': station_data.css('.estNombre::text').get(),
             'code': station_data.css('.estDireccion::text').get(),
+            'link': station_url or '',
+            'follow_link': follow_link,
+            'transmilenio_id': transmilenio_id,
         }
+
+    def parse_station_detail_page(self, response):
+        station_item = response.meta['station_item']
+        cenefa_text = response.css('#resultadoBusqueda .focus::text').get()
+        cenefa = parse_station_unique_id(cenefa_text)
+        station_item.update(
+            {
+                'cenefa': cenefa,
+            }
+        )
+        yield BusStationItem(**station_item)
 
     def parse_route_detail_page(self, response):
         route_item = response.meta['route_item']
@@ -145,14 +183,35 @@ class SitpSpider(scrapy.Spider):
             for station in response.css(
                 '.recorrido .recorrido1 .estacionRecorrido'
             ):
-                route_item['route_1'].append(self.parse_route_station(station))
+                station = self.parse_route_station(station)
+                if station['follow_link']:
+                    route_item['route_1'].append(station)
+                    yield response.follow(
+                        station['follow_link'],
+                        self.parse_station_detail_page,
+                        meta={'station_item': station},
+                    )
             route_item['route_2'] = []
             for station in response.css(
                 '.recorrido .recorrido2 .estacionRecorrido'
             ):
-                route_item['route_2'].append(self.parse_route_station(station))
+                station = self.parse_route_station(station)
+                if station['follow_link']:
+                    route_item['route_2'].append(station)
+                    yield response.follow(
+                        station['follow_link'],
+                        self.parse_station_detail_page,
+                        meta={'station_item': station},
+                    )
         else:
             route_item['route_1'] = []
             for station in response.css('.recorrido .recorrido1'):
-                route_item['route_1'].append(self.parse_route_station(station))
+                station = self.parse_route_station(station)
+                if station['follow_link']:
+                    route_item['route_1'].append(station)
+                    yield response.follow(
+                        station['follow_link'],
+                        self.parse_station_detail_page,
+                        meta={'station_item': station},
+                    )
         yield route_item

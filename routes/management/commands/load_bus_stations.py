@@ -22,14 +22,13 @@ class Command(BaseCommand):
 
             try:
                 bus_station = BusStation.objects.get(
-                    code=properties['direccion_paradero']
+                    cenefa=properties['cenefa']
                 )
             except BusStation.DoesNotExist:
                 self.stdout.write(
-                    self.style.WARNING(
-                        f'{properties["direccion_paradero"]} not found'
-                    )
+                    self.style.WARNING(f'{properties["cenefa"]} not found')
                 )
+                continue
             bus_station.cenefa = properties['cenefa']
             bus_station.name = properties['nombre_paradero']
             bus_station.audio = properties['audio_paradero']
