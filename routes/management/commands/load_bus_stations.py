@@ -30,14 +30,14 @@ class Command(BaseCommand):
                 )
                 continue
             bus_station.cenefa = properties['cenefa']
-            bus_station.name = properties['nombre_paradero']
-            bus_station.audio = properties['audio_paradero']
-            bus_station.longitude = properties['longitud_paradero']
-            bus_station.latitude = properties['latitud_paradero']
+            bus_station.name = properties['nombre']
+            bus_station.audio = properties['audio']
+            bus_station.longitude = properties['longitud']
+            bus_station.latitude = properties['latitud']
             bus_station.save()
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'{properties["direccion_paradero"]} updated'
+                    f'{properties["direccion_bandera"]} updated'
                 )
             )
         self.stdout.write(
