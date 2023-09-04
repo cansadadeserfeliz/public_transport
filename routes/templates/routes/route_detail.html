@@ -56,38 +56,43 @@
     zoom: 11
   });
 
-{% for route_station_group in route_station_groups %}
-  const layer{{ forloop.counter }} = {
-    'id': 'route{{ forloop.counter }}',
-    'type': 'line',
-    'source': 'route{{ forloop.counter }}',
-    'layout': {
-      'line-join': 'round',
-      'line-cap': 'round'
-    },
-    'paint': {
-      'line-color': '#888',
-      'line-width': 3
-    }
-  }
   map.on('load', () => {
-    map.addSource('route{{ forloop.counter }}', {
-      'type': 'geojson',
-      'data': {
-        'type': 'Feature',
-        'properties': {},
-        'geometry': {
-          'type': 'LineString',
-          'coordinates': [
-          {% for route_station in route_station_group %}
-            [{{ route_station.bus_station.longitude }}, {{ route_station.bus_station.latitude }}]{% if not forloop.last %},{% endif %}
-          {% endfor %}
-          ]
-        }
+    map.addSource('buses', {
+      type: 'geojson',
+      // Use a URL for the value for the `data` property.
+      data: '{% url 'api_routes:route_buses' route.id %}'
+    });
+    map.addLayer({
+      'id': 'buses-layer',
+      'source': 'buses',
+      'type': 'symbol',
+      'layout': {
+        'icon-image': 'bus',
+      },
+      'paint': {
+        'icon-color': 'blue'
       }
     });
-    map.addLayer(layer{{ forloop.counter }});
+
+    map.addSource('stations', {
+      type: 'geojson',
+      // Use a URL for the value for the `data` property.
+      data: '{% url 'api_routes:route_stations' route.id %}'
+    });
+    map.addLayer({
+      'id': 'stations-layer',
+      'source': 'stations',
+      'type': 'line',
+      'layout': {
+        'line-join': 'round',
+        'line-cap': 'round'
+      },
+      'paint': {
+        'line-color': '#888',
+        'line-width': 3
+      }
+    });
   });
-{% endfor %}
+
 </script>
 {% endblock content %}

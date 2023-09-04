@@ -7,14 +7,24 @@
       <th scope="col">#</th>
       <th scope="col">Code</th>
       <th scope="col">Name</th>
+      <th scope="col">cenefa</th>
+      <th scope="col">address</th>
+      <th scope="col">audio</th>
+      <th scope="col">longitude</th>
+      <th scope="col">latitude</th>
     </tr>
   </thead>
   <tbody>
   {% for bus_station in busstation_list %}
     <tr>
-      <th scope="row">{{ forloop.counter }}</th>
+      <th scope="row">{{ bus_station.id }}</th>
       <td>{{ bus_station.code }}</td>
       <td>{{ bus_station.name }}</td>
+      <td>{{ bus_station.cenefa }}</td>
+      <td>{{ bus_station.address }}</td>
+      <td>{{ bus_station.audio }}</td>
+      <td>{{ bus_station.longitude }}</td>
+      <td>{{ bus_station.latitude }}</td>
     </tr>
   {% endfor %}
   </tbody>

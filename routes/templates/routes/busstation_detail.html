@@ -2,12 +2,12 @@
 
 {% block content %}
 <ul class="list-group">
-  <li class="list-group-item">Code: {{ busstation.code }}</li>
-  <li class="list-group-item">Name: {{ busstation.name }}</li>
-  <li class="list-group-item">cenefa: {{ busstation.cenefa }}</li>
-  <li class="list-group-item">audio: {{ busstation.audio }}</li>
-  <li class="list-group-item">longitude: {{ busstation.longitude }}</li>
-  <li class="list-group-item">latitude: {{ busstation.latitude }}</li>
+  <li class="list-group-item">Code: {{ bus_station.code }}</li>
+  <li class="list-group-item">Name: {{ bus_station.name }}</li>
+  <li class="list-group-item">cenefa: {{ bus_station.cenefa }}</li>
+  <li class="list-group-item">audio: {{ bus_station.audio }}</li>
+  <li class="list-group-item">longitude: {{ bus_station.longitude }}</li>
+  <li class="list-group-item">latitude: {{ bus_station.latitude }}</li>
 </ul>
 
 <hr class="m2">
@@ -21,7 +21,7 @@
     </tr>
   </thead>
   <tbody>
-  {% for route_station in busstation.route_stations.all %}
+  {% for route_station in bus_station.route_stations.all %}
     <tr>
       <th scope="row">{{ forloop.counter }}</th>
       <td>
@@ -50,10 +50,10 @@
     center: [-74.072092, 4.7109886], // starting position [lng, lat]
     zoom: 9 // starting zoom
   });
-{% if busstation.longitude and busstation.latitude %}
+{% if bus_station.longitude and bus_station.latitude %}
   // Create a default Marker and add it to the map.
   const marker = new mapboxgl.Marker()
-    .setLngLat([{{ busstation.longitude }}, {{ busstation.latitude }}])
+    .setLngLat([{{ bus_station.longitude }}, {{ bus_station.latitude }}])
     .addTo(map);
   map.flyTo({
     center: marker.getLngLat(),
