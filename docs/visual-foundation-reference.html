@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>public_transport — Visual Foundation Reference</title>
+<style>
+  :root {
+    --paper: #faf9f5;
+    --paper-raised: #ffffff;
+    --ink: #22251f;
+    --ink-soft: #4a4d43;
+    --line: #ddd9cc;
+    --line-strong: #c7c2b0;
+    --muted: #8c897c;
+    --live: #3e8f5e;
+    --live-bg: #e8f2ea;
+    --unavail: #a6a395;
+    --unavail-bg: #efeee8;
+    --accent: #4f7a5b;
+    --accent-soft: #dde8de;
+    --accent-ink: #1f3527;
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-8: 48px;
+    --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-data: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", monospace;
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #1b1d18;
+    --paper-raised: #24261f;
+    --ink: #ede9dd;
+    --ink-soft: #c3bfae;
+    --line: #38392f;
+    --line-strong: #4a4b3d;
+    --muted: #8f8c7c;
+    --live: #5cb37e;
+    --live-bg: #1f3427;
+    --unavail: #7a7768;
+    --unavail-bg: #2b2b23;
+    --accent: #7cab89;
+    --accent-soft: #263429;
+    --accent-ink: #cfe6d5;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1b1d18;
+      --paper-raised: #24261f;
+      --ink: #ede9dd;
+      --ink-soft: #c3bfae;
+      --line: #38392f;
+      --line-strong: #4a4b3d;
+      --muted: #8f8c7c;
+      --live: #5cb37e;
+      --live-bg: #1f3427;
+      --unavail: #7a7768;
+      --unavail-bg: #2b2b23;
+      --accent: #7cab89;
+      --accent-soft: #263429;
+      --accent-ink: #cfe6d5;
+    }
+  }
+
+  /* accent-direction swap: Sabana (sky/blue) */
+  [data-accent="sabana"] {
+    --accent: #4f6e85;
+    --accent-soft: #dde5ea;
+    --accent-ink: #1c2e39;
+  }
+  :root[data-theme="dark"][data-accent="sabana"],
+  [data-accent="sabana"][data-theme="dark"] {
+    --accent: #86adc4;
+    --accent-soft: #24313a;
+    --accent-ink: #d3e3ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    [data-accent="sabana"]:not([data-theme="light"]) {
+      --accent: #86adc4;
+      --accent-soft: #24313a;
+      --accent-ink: #d3e3ec;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  a { color: inherit; }
+  img, svg { max-width: 100%; display: block; }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-5) var(--space-8);
+  }
+
+  header.intro {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+    max-width: 680px;
+  }
+  .eyebrow {
+    font-family: var(--font-data);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  h1 {
+    font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.1rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .lede {
+    color: var(--ink-soft);
+    font-size: 1rem;
+    max-width: 62ch;
+  }
+
+  .callout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border: 1px solid var(--line-strong);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+    background: var(--paper-raised);
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    margin-bottom: var(--space-6);
+    max-width: 720px;
+  }
+  .callout strong { color: var(--ink); }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+    margin-bottom: var(--space-6);
+    padding: var(--space-3) var(--space-4);
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+  }
+  .controls .group {
+    display: flex;
+    gap: var(--space-1);
+    align-items: center;
+  }
+  .controls .label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-right: var(--space-2);
+  }
+  button.toggle {
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid var(--line-strong);
+    background: var(--paper);
+    color: var(--ink-soft);
+    padding: var(--space-2) var(--space-3);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  button.toggle[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--paper);
+    border-color: var(--accent);
+  }
+  button.toggle:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  section { margin-bottom: var(--space-8); }
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0 0 var(--space-1);
+  }
+  .section-note {
+    color: var(--muted);
+    font-size: 0.88rem;
+    max-width: 66ch;
+    margin: 0 0 var(--space-4);
+  }
+
+  /* palette swatches */
+  .swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--space-3);
+  }
+  .swatch {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--paper-raised);
+  }
+  .swatch .fill {
+    height: 64px;
+  }
+  .swatch .meta {
+    padding: var(--space-2) var(--space-3);
+  }
+  .swatch .name {
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .swatch .hex {
+    font-family: var(--font-data);
+    font-size: 0.74rem;
+    color: var(--muted);
+  }
+
+  /* trunk corridor swatches — fixed real-world colors, not theme tokens */
+  .corridor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: var(--space-2);
+  }
+  .corridor {
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .corridor .letter {
+    font-family: var(--font-data);
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .corridor .name {
+    font-size: 0.72rem;
+    opacity: 0.92;
+  }
+
+  /* phone mockup */
+  .device-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--space-5);
+    align-items: start;
+  }
+  .device {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .device .screen {
+    padding: var(--space-4);
+  }
+  .device .screen-title {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: var(--space-3) var(--space-4) 0;
+  }
+
+  .map-panel {
+    position: relative;
+    height: 200px;
+    border-radius: var(--radius-md);
+    background:
+      radial-gradient(circle at 30% 30%, var(--accent-soft), transparent 55%),
+      var(--paper);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .map-panel svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .pin {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--paper-raised);
+    box-shadow: 0 0 0 1px var(--line-strong);
+    transform: translate(-50%, -50%);
+  }
+
+  .route-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+  }
+  .route-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--paper);
+  }
+  .route-chip {
+    flex-shrink: 0;
+    min-width: 40px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-data);
+    font-size: 0.68rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .route-info { flex: 1; min-width: 0; }
+  .route-name {
+    font-size: 0.86rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .route-sub {
+    font-size: 0.76rem;
+    color: var(--muted);
+  }
+  .status {
+    font-family: var(--font-data);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: var(--space-1) var(--space-2);
+    border-radius: 999px;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .status.live { color: var(--live); background: var(--live-bg); }
+  .status.unavailable { color: var(--unavail); background: var(--unavail-bg); }
+
+  .detail-card {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--paper);
+    padding: var(--space-4);
+  }
+  .detail-card .route-name { font-size: 1rem; margin-bottom: var(--space-1); }
+  .detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: var(--space-3) 0;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+  .detail-meta strong { color: var(--ink); font-weight: 600; }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    font-weight: 600;
+  }
+
+  .footer-trust {
+    margin-top: var(--space-4);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--line);
+    font-size: 0.72rem;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  /* map markers */
+  .marker-showcase {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+    padding: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--paper-raised);
+  }
+  .marker-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .marker-group .group-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .marker-row {
+    display: flex;
+    gap: var(--space-4);
+    align-items: flex-end;
+  }
+  .marker-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    width: 76px;
+  }
+  .marker-item .marker-caption {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    text-align: center;
+    line-height: 1.3;
+  }
+  .marker-svg { width: 34px; height: 34px; }
+
+  .marker-map {
+    position: relative;
+    height: 180px;
+    border-radius: var(--radius-md);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    margin-top: var(--space-4);
+  }
+  .marker-map svg.route-path { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .marker-on-map { position: absolute; transform: translate(-50%, -50%); }
+
+  /* directionality demo */
+  .direction-demo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    padding: var(--space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--paper-raised);
+  }
+  .direction-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .direction-line {
+    width: 84px;
+    height: 6px;
+    border-radius: 999px;
+    position: relative;
+  }
+  .direction-line::after {
+    content: "";
+    position: absolute;
+    right: -2px;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 9px solid currentColor;
+    transform: translateY(-50%);
+  }
+  .direction-label { font-size: 0.82rem; color: var(--ink-soft); }
+  .direction-label strong { color: var(--ink); }
+
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-4);
+  }
+  .note {
+    padding: var(--space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--paper-raised);
+  }
+  .note h3 {
+    font-size: 0.88rem;
+    margin: 0 0 var(--space-2);
+  }
+  .note p {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .recommend {
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+  }
+  .recommend h2 { color: inherit; }
+  .recommend p { margin: var(--space-2) 0 0; font-size: 0.92rem; max-width: 66ch; }
+
+  .source-list {
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin: 0;
+    padding-left: 1.1em;
+  }
+  .source-list li { margin-bottom: 2px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    button.toggle { transition: background 0.15s ease, color 0.15s ease; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="intro">
+    <span class="eyebrow">public_transport — UX design workflow · step 8 reference</span>
+    <h1>Visual foundation exploration</h1>
+    <p class="lede">Two app-accent directions on a shared neutral system, plus the official TransMilenio trunk-corridor colors routes will actually render in. Toggle theme and accent below; the corridor colors don't change — they're fixed, real-world reference points, not part of the app's own theme.</p>
+  </header>
+
+  <div class="callout">
+    <strong>On the Manual de Marca Ciudad "Bogotá":</strong> reviewed it — bold red/yellow/blue, a rounded display face, built for tourism/investment marketing (Alcaldía Mayor, IDT). Not carrying the palette or logo forward: it reads as an official government product, which conflicts directly with the app's non-affiliation stance and the calm/muted direction already set. What is worth keeping is the underlying idea behind the "Á" mark — Bogotá as the world's highest major city, the plateau/mountain as identity — which lines up naturally with the Páramo accent direction below, without borrowing any of the actual brand assets.
+  </div>
+
+  <div class="controls">
+    <div class="group">
+      <span class="label">Theme</span>
+      <button class="toggle" id="theme-light" aria-pressed="false">Light</button>
+      <button class="toggle" id="theme-dark" aria-pressed="false">Dark</button>
+      <button class="toggle" id="theme-system" aria-pressed="true">System</button>
+    </div>
+    <div class="group">
+      <span class="label">App accent</span>
+      <button class="toggle" id="accent-paramo" aria-pressed="true">Páramo (moss)</button>
+      <button class="toggle" id="accent-sabana" aria-pressed="false">Sabana (sky)</button>
+    </div>
+  </div>
+
+  <section>
+    <h2>App palette (theme-able)</h2>
+    <p class="section-note">Neutrals stay fixed across both directions — only the accent hue changes. The accent is reserved for app chrome only: "you are here," selection state, UI controls. It is deliberately kept muted/desaturated so it never reads as a route color — every real route color below is fully saturated, so a soft accent is the visual signal "this is the app talking, not a route."</p>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="fill" style="background:var(--paper)"></div><div class="meta"><div class="name">Paper</div><div class="hex">background</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--ink)"></div><div class="meta"><div class="name">Ink</div><div class="hex">primary text</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--line)"></div><div class="meta"><div class="name">Line</div><div class="hex">borders, thin strokes</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--muted)"></div><div class="meta"><div class="name">Muted</div><div class="hex">secondary text</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--accent)"></div><div class="meta"><div class="name">Accent</div><div class="hex">selection, "you are here"</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--live)"></div><div class="meta"><div class="name">Live</div><div class="hex">semantic — bus tracked</div></div></div>
+      <div class="swatch"><div class="fill" style="background:var(--unavail)"></div><div class="meta"><div class="name">Unavailable</div><div class="hex">semantic — no live data</div></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Route identity colors (fixed, not themed)</h2>
+    <p class="section-note">Official TransMilenio trunk-corridor colors — riders already associate these with specific corridors from system signage and maps, so the app uses them as-is for route lines and chips rather than assigning its own.</p>
+    <div class="corridor-grid">
+      <div class="corridor" style="background:#1F3990;color:#fff"><span class="letter">A</span><span class="name">Caracas</span></div>
+      <div class="corridor" style="background:#80BA27;color:#1a2b0a"><span class="letter">B</span><span class="name">Norte</span></div>
+      <div class="corridor" style="background:#FCBB1F;color:#3a2c00"><span class="letter">C</span><span class="name">Suba</span></div>
+      <div class="corridor" style="background:#8264AA;color:#fff"><span class="letter">D</span><span class="name">Calle 80</span></div>
+      <div class="corridor" style="background:#AE6901;color:#fff"><span class="letter">E</span><span class="name">NQS Central</span></div>
+      <div class="corridor" style="background:#DD0615;color:#fff"><span class="letter">F</span><span class="name">Américas</span></div>
+      <div class="corridor" style="background:#009EDF;color:#00263a"><span class="letter">G</span><span class="name">NQS Sur</span></div>
+      <div class="corridor" style="background:#F18401;color:#3a1f00"><span class="letter">H</span><span class="name">Caracas Sur</span></div>
+      <div class="corridor" style="background:#E1A2AD;color:#4a1520"><span class="letter">J</span><span class="name">Eje Ambiental</span></div>
+      <div class="corridor" style="background:#D5B07B;color:#3a2a0a"><span class="letter">K</span><span class="name">Calle 26</span></div>
+      <div class="corridor" style="background:#019A9F;color:#fff"><span class="letter">L</span><span class="name">Carrera 10</span></div>
+      <div class="corridor" style="background:#8E3B91;color:#fff"><span class="letter">M</span><span class="name">Carrera 7</span></div>
+    </div>
+
+    <p class="section-note" style="margin-top: var(--space-5)">A second, coarser layer sits above corridor color: TransMilenio (closed, exclusive-lane BRT) vs. SITP zonal (open system, shares regular streets). TM's real fleet is red-liveried; SITP's zonal fleet has traditionally been blue (yellow/green variants mark Euro6/electric engines, not route identity — not used here). Route/bus markers use this as the base body color, with the trunk corridor color layered on top only for TM, since SITP zonal routes have no equivalent official per-route color chart.</p>
+    <div class="corridor-grid">
+      <div class="corridor" style="background:#B3121C;color:#fff"><span class="letter">TM</span><span class="name">Troncal — sistema cerrado</span></div>
+      <div class="corridor" style="background:#1F5FA8;color:#fff"><span class="letter">SITP</span><span class="name">Zonal — sistema abierto</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Directionality treatment</h2>
+    <p class="section-note">Same corridor hue for both directions (so the route stays recognizable) — direction is shown by a lightness variation plus an explicit arrowhead, never color alone, so it still reads correctly for colorblind riders and holds up in the "unmistakable at a glance" success criterion from Core Experience.</p>
+    <div class="direction-demo">
+      <div class="direction-item">
+        <div class="direction-line" style="background:#80BA27; color:#80BA27"></div>
+        <span class="direction-label"><strong>B · Norte</strong> — sentido norte (tono pleno)</span>
+      </div>
+      <div class="direction-item">
+        <div class="direction-line" style="background:#b7d98a; color:#b7d98a; transform: scaleX(-1)"></div>
+        <span class="direction-label"><strong>B · Norte</strong> — sentido sur (tono claro, flecha invertida)</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Map markers</h2>
+    <p class="section-note">Three marker types, each shaped so the difference between them is legible by silhouette alone, not just color — important given riders will glance at this while walking. Stops are static dots; buses read as a small vehicle body (a rounded capsule with a windshield band near the front, not an abstract arrowhead) that rotates to face its heading; "you are here" stays the single pin already shown above.</p>
+    <div class="marker-showcase">
+      <div class="marker-group">
+        <span class="group-label">Stop marker</span>
+        <div class="marker-row">
+          <div class="marker-item">
+            <svg class="marker-svg" viewBox="0 0 34 34">
+              <circle cx="17" cy="17" r="6" fill="var(--paper-raised)" stroke="var(--line-strong)" stroke-width="2.5"/>
+            </svg>
+            <span class="marker-caption">Default — no route selected</span>
+          </div>
+          <div class="marker-item">
+            <svg class="marker-svg" viewBox="0 0 34 34">
+              <circle cx="17" cy="17" r="7" fill="#80BA27" stroke="var(--paper-raised)" stroke-width="2.5"/>
+            </svg>
+            <span class="marker-caption">Served by selected route — filled in corridor color</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="marker-group">
+        <span class="group-label">Bus marker — live, directional</span>
+        <div class="marker-row">
+          <div class="marker-item">
+            <svg class="marker-svg" viewBox="0 0 34 34">
+              <circle cx="17" cy="17" r="15" fill="var(--paper-raised)" stroke="var(--line)" stroke-width="1"/>
+              <g transform="rotate(0 17 17)">
+                <rect x="12" y="6" width="10" height="20" rx="5" fill="#80BA27"/>
+                <rect x="12.5" y="10" width="9" height="2.4" rx="1.2" fill="var(--paper-raised)" opacity="0.9"/>
+              </g>
+            </svg>
+            <span class="marker-caption">Heading north (B · Norte) — capsule body, windshield band marks the front</span>
+          </div>
+          <div class="marker-item">
+            <svg class="marker-svg" viewBox="0 0 34 34">
+              <circle cx="17" cy="17" r="15" fill="var(--paper-raised)" stroke="var(--line)" stroke-width="1"/>
+              <g transform="rotate(135 17 17)">
+                <rect x="12" y="6" width="10" height="20" rx="5" fill="#F18401"/>
+                <rect x="12.5" y="10" width="9" height="2.4" rx="1.2" fill="var(--paper-raised)" opacity="0.9"/>
+              </g>
+            </svg>
+            <span class="marker-caption">Heading southeast (H · Caracas Sur)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="marker-group">
+        <span class="group-label">Bus marker — TM vs. SITP (system identity)</span>
+        <div class="marker-row">
+          <div class="marker-item">
+            <svg class="marker-svg" viewBox="0 0 34 34">
+              <circle cx="17" cy="17" r="15" fill="var(--paper-raised)" stroke="var(--line)" stroke-width="1"/>
+              <g transform="rotate(0 17 17)">
+                <rect x="12" y="6" width="10" height="20" rx="5" fill="#B3121C"/>
+                <rect x="12.5" y="10" width="9" height="2.4" rx="1.2" fill="#80BA27"/>
+              </g>
+            </svg>
+            <span class="marker-caption">TM · Norte (B) — red body, corridor-color stripe</span>
+          </div>
+          <div class="marker-item">
+            <svg class="marker-svg" viewBox="0 0 34 34">
+              <circle cx="17" cy="17" r="15" fill="var(--paper-raised)" stroke="var(--line)" stroke-width="1"/>
+              <g transform="rotate(35 17 17)">
+                <rect x="12" y="6" width="10" height="20" rx="5" fill="#1F5FA8"/>
+                <rect x="12.5" y="10" width="9" height="2.4" rx="1.2" fill="var(--paper-raised)" opacity="0.9"/>
+              </g>
+            </svg>
+            <span class="marker-caption">SITP · K309 — blue body, no corridor stripe (none exists)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="marker-group">
+        <span class="group-label">Bus marker — unavailable</span>
+        <div class="marker-row">
+          <div class="marker-item">
+            <svg class="marker-svg" viewBox="0 0 34 34">
+              <circle cx="17" cy="17" r="15" fill="var(--unavail-bg)" stroke="var(--line)" stroke-width="1"/>
+              <g>
+                <rect x="12" y="6" width="10" height="20" rx="5" fill="none" stroke="var(--unavail)" stroke-width="1.75" stroke-dasharray="2.5 2"/>
+              </g>
+            </svg>
+            <span class="marker-caption">No live data — same vehicle silhouette, outline only, no heading claimed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-note" style="margin-top: var(--space-4)">Together on a route: filled stop dots along the selected corridor, a live directional bus, and an unavailable one on a different route — heading is only ever drawn when the source data actually supports it; an unavailable bus renders heading-less rather than guessing.</p>
+    <div class="marker-map">
+      <svg class="route-path" viewBox="0 0 320 180" fill="none">
+        <path d="M10,150 C70,140 100,60 170,55 C230,50 270,90 310,70" stroke="#80BA27" stroke-width="3" stroke-linecap="round"/>
+        <path d="M10,30 C80,50 140,110 200,120 C240,128 270,110 310,130" stroke="#D5B07B" stroke-width="2.5" stroke-linecap="round" opacity="0.55"/>
+      </svg>
+      <div class="marker-on-map" style="left:23%; top:78%;">
+        <svg class="marker-svg" viewBox="0 0 34 34" style="width:20px;height:20px">
+          <circle cx="17" cy="17" r="6" fill="#80BA27" stroke="var(--paper-raised)" stroke-width="2.5"/>
+        </svg>
+      </div>
+      <div class="marker-on-map" style="left:53%; top:31%;">
+        <svg class="marker-svg" viewBox="0 0 34 34" style="width:20px;height:20px">
+          <circle cx="17" cy="17" r="6" fill="#80BA27" stroke="var(--paper-raised)" stroke-width="2.5"/>
+        </svg>
+      </div>
+      <div class="marker-on-map" style="left:38%; top:52%;">
+        <svg class="marker-svg" viewBox="0 0 34 34">
+          <circle cx="17" cy="17" r="15" fill="var(--paper-raised)" stroke="var(--line)" stroke-width="1"/>
+          <g transform="rotate(-35 17 17)">
+            <rect x="12" y="6" width="10" height="20" rx="5" fill="#80BA27"/>
+            <rect x="12.5" y="10" width="9" height="2.4" rx="1.2" fill="var(--paper-raised)" opacity="0.9"/>
+          </g>
+        </svg>
+      </div>
+      <div class="marker-on-map" style="left:78%; top:64%;">
+        <svg class="marker-svg" viewBox="0 0 34 34">
+          <circle cx="17" cy="17" r="15" fill="var(--unavail-bg)" stroke="var(--line)" stroke-width="1"/>
+          <g><rect x="12" y="6" width="10" height="20" rx="5" fill="none" stroke="var(--unavail)" stroke-width="1.75" stroke-dasharray="2.5 2"/></g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>In context</h2>
+    <p class="section-note">The nearby-comparison view (left) and a route detail panel opened from tapping a route line (right) — route chips use real corridor colors; the accent shows up only as the location pin and the Ciclovía tag.</p>
+    <div class="device-row">
+      <div class="device">
+        <div class="screen-title">Nearby — nueve rutas encontradas</div>
+        <div class="screen">
+          <div class="map-panel">
+            <svg viewBox="0 0 300 200" fill="none">
+              <path d="M0,150 C60,140 90,60 160,55 C220,50 260,90 300,70" stroke="#80BA27" stroke-width="3" stroke-linecap="round"/>
+              <path d="M10,40 C70,60 130,120 190,130 C230,138 260,120 300,140" stroke="#F18401" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="160" cy="55" r="4" fill="var(--paper-raised)" stroke="#80BA27" stroke-width="2"/>
+              <circle cx="190" cy="130" r="4" fill="var(--paper-raised)" stroke="#F18401" stroke-width="2"/>
+            </svg>
+            <div class="pin" style="left:52%; top:48%;"></div>
+          </div>
+          <div class="route-list">
+            <div class="route-row">
+              <div class="route-chip" style="background:#80BA27;color:#1a2b0a">B</div>
+              <div class="route-info">
+                <div class="route-name">Norte · Calle 127 → Portal Norte</div>
+                <div class="route-sub">Paradero a 90 m</div>
+              </div>
+              <span class="status live">3 min</span>
+            </div>
+            <div class="route-row">
+              <div class="route-chip" style="background:#D5B07B;color:#3a2a0a">K</div>
+              <div class="route-info">
+                <div class="route-name">Calle 26 · Av. Boyacá → Ricaurte</div>
+                <div class="route-sub">Paradero a 140 m</div>
+              </div>
+              <span class="status unavailable">Sin datos</span>
+            </div>
+            <div class="route-row">
+              <div class="route-chip" style="background:#F18401;color:#3a1f00">H</div>
+              <div class="route-info">
+                <div class="route-name">Caracas Sur · Suba → Centro</div>
+                <div class="route-sub">Paradero a 210 m</div>
+              </div>
+              <span class="status live">7 min</span>
+            </div>
+            <div class="route-row">
+              <div class="route-chip" style="background:#1F5FA8;color:#fff">K309</div>
+              <div class="route-info">
+                <div class="route-name">TransMiZonal · San Pablo</div>
+                <div class="route-sub">Paradero a 60 m</div>
+              </div>
+              <span class="status unavailable">Sin datos</span>
+            </div>
+          </div>
+          <div class="footer-trust">
+            <span>No afiliado a TransMilenio S.A. / SITP.</span>
+            <span>Datos de rutas: TransMilenio — Datos Abiertos.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="device">
+        <div class="screen-title">Ruta seleccionada</div>
+        <div class="screen">
+          <div class="detail-card">
+            <div class="route-name">B · Norte — Calle 127 → Portal Norte</div>
+            <div class="detail-meta">
+              <span><strong>Horario</strong> 4:30 a.m. – 11:00 p.m.</span>
+              <span><strong>Días</strong> Todos los días</span>
+            </div>
+            <span class="tag">Ruta alterna en Ciclovía (dom. y fest.)</span>
+            <div class="route-list" style="margin-top: var(--space-4)">
+              <div class="route-row">
+                <div class="route-chip" style="background:#80BA27;color:#1a2b0a">→</div>
+                <div class="route-info">
+                  <div class="route-name">Paradero Calle 127</div>
+                  <div class="route-sub">Sentido norte</div>
+                </div>
+                <span class="status live">3 min</span>
+              </div>
+              <div class="route-row">
+                <div class="route-chip" style="background:#80BA27;color:#1a2b0a">→</div>
+                <div class="route-info">
+                  <div class="route-name">Paradero Av. Suba</div>
+                  <div class="route-sub">Sentido norte</div>
+                </div>
+                <span class="status live">9 min</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Working rules</h2>
+    <div class="notes-grid">
+      <div class="note">
+        <h3>Four-tier color system</h3>
+        <p>System identity (TM red vs. SITP blue) → corridor color (TM trunk only, vivid, fixed per letter) → app accent (muted, chrome only) → semantic live/unavailable (independent of the rest). Each tier means one thing and is never borrowed for another.</p>
+      </div>
+      <div class="note">
+        <h3>Thin lines, soft corners</h3>
+        <p>2–3px route strokes, 8–22px corner radii depending on element size — Madrid-map restraint, not rounded-for-its-own-sake.</p>
+      </div>
+      <div class="note">
+        <h3>System fonts, on purpose</h3>
+        <p>No custom webfont load — matches the architecture's lean-payload requirement (NFR1). Hierarchy comes from weight, size and spacing, and a monospace face for live times/distances (tabular figures, departure-board feel).</p>
+      </div>
+      <div class="note">
+        <h3>Both themes, same rules</h3>
+        <p>Dark mode isn't an inversion — neutrals shift to a warm near-black and the app accent brightens slightly to hold contrast; route corridor colors stay as-is in both themes since they're a fixed external reference, not part of the app's own palette.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="recommend">
+    <h2>Recommendation</h2>
+    <p><strong>Páramo</strong> (the moss-green direction) over Sabana, and — now that real corridor colors are in the mix — for a different reason than hue-uniqueness (every hue is already used by some corridor, A and G are both blue-family, B is already green). The actual separation comes from saturation and value: Páramo is kept deliberately muted/dusty next to any corridor's fully saturated color, so "app UI" and "route identity" stay visually distinct by intensity, not by hue. It also carries the páramo/altitude echo from the city brand review above, without touching the brand's own assets.</p>
+  </section>
+
+  <section>
+    <h2>Sources consulted</h2>
+    <ul class="source-list">
+      <li>TransMilenio trunk-corridor colors and names: user-provided official system legend (Convenciones/Key), cross-checked against <a href="https://es.wikipedia.org/wiki/Plantilla:Transmilenio/color" target="_blank" rel="noopener">Wikipedia's Plantilla:Transmilenio/color</a>, itself sourced from TransMilenio's route guide. Corridor M's hex is a visual estimate from the legend image, not a confirmed source value — worth verifying against TransMilenio's official brand/route guide before implementation.</li>
+      <li>Manual de Marca Ciudad "Bogotá" (Alcaldía Mayor / IDT), <a href="https://bogota.gov.co/sites/default/files/inline-files/manual-de-marca-ciudad-bogota-actualizacion-noviembre-2025_c-1.pdf" target="_blank" rel="noopener">official PDF, updated November 2025</a>.</li>
+      <li>TM (red) vs. SITP zonal (traditionally blue, with yellow/green Euro6/electric variants) fleet livery: general web sources (<a href="https://thecitypaperbogota.com/bogota/sitp-explained/" target="_blank" rel="noopener">The City Paper Bogotá — SITP explained</a>, <a href="https://thebogotapost.com/colectivos-getting-the-sitp-blues/6483/" target="_blank" rel="noopener">The Bogotá Post</a>). Both hex values (TM red, SITP blue) are approximations, not confirmed brand values — verify before implementation. Route code format (e.g. K309, TransMiZonal) referenced from TransMilenio's public route search tool.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var themeBtns = {
+      light: document.getElementById('theme-light'),
+      dark: document.getElementById('theme-dark'),
+      system: document.getElementById('theme-system')
+    };
+    var accentBtns = {
+      paramo: document.getElementById('accent-paramo'),
+      sabana: document.getElementById('accent-sabana')
+    };
+
+    function setTheme(mode) {
+      if (mode === 'system') {
+        root.removeAttribute('data-theme');
+      } else {
+        root.setAttribute('data-theme', mode);
+      }
+      Object.keys(themeBtns).forEach(function (k) {
+        themeBtns[k].setAttribute('aria-pressed', String(k === mode));
+      });
+    }
+
+    function setAccent(direction) {
+      if (direction === 'paramo') {
+        root.removeAttribute('data-accent');
+      } else {
+        root.setAttribute('data-accent', direction);
+      }
+      Object.keys(accentBtns).forEach(function (k) {
+        accentBtns[k].setAttribute('aria-pressed', String(k === direction));
+      });
+    }
+
+    themeBtns.light.addEventListener('click', function () { setTheme('light'); });
+    themeBtns.dark.addEventListener('click', function () { setTheme('dark'); });
+    themeBtns.system.addEventListener('click', function () { setTheme('system'); });
+    accentBtns.paramo.addEventListener('click', function () { setAccent('paramo'); });
+    accentBtns.sabana.addEventListener('click', function () { setAccent('sabana'); });
+  })();
+</script>
+
+</body>
+</html>

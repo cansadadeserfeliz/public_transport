@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>public_transport — Design Direction Mockups</title>
+<style>
+  :root {
+    --paper: #faf9f5;
+    --paper-raised: #ffffff;
+    --ink: #22251f;
+    --ink-soft: #4a4d43;
+    --line: #ddd9cc;
+    --line-strong: #c7c2b0;
+    --muted: #8c897c;
+    --live: #3e8f5e;
+    --live-bg: #e8f2ea;
+    --unavail: #a6a395;
+    --unavail-bg: #efeee8;
+    --caution: #9a6b12;
+    --caution-bg: #f3e8cf;
+    --accent: #4f7a5b;
+    --accent-soft: #dde8de;
+    --accent-ink: #1f3527;
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+    --space-5: 24px; --space-6: 32px; --space-8: 48px;
+    --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-data: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", monospace;
+  }
+  :root[data-theme="dark"] {
+    --paper: #1b1d18; --paper-raised: #24261f; --ink: #ede9dd; --ink-soft: #c3bfae;
+    --line: #38392f; --line-strong: #4a4b3d; --muted: #8f8c7c;
+    --live: #5cb37e; --live-bg: #1f3427; --unavail: #7a7768; --unavail-bg: #2b2b23;
+    --caution: #d9ad5c; --caution-bg: #3a2f18;
+    --accent: #7cab89; --accent-soft: #263429; --accent-ink: #cfe6d5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1b1d18; --paper-raised: #24261f; --ink: #ede9dd; --ink-soft: #c3bfae;
+      --line: #38392f; --line-strong: #4a4b3d; --muted: #8f8c7c;
+      --live: #5cb37e; --live-bg: #1f3427; --unavail: #7a7768; --unavail-bg: #2b2b23;
+      --caution: #d9ad5c; --caution-bg: #3a2f18;
+      --accent: #7cab89; --accent-soft: #263429; --accent-ink: #cfe6d5;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper); color: var(--ink); font-family: var(--font-ui);
+    line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  img, svg { max-width: 100%; display: block; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: var(--space-8) var(--space-5); }
+
+  header.intro { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-6); max-width: 720px; }
+  .eyebrow { font-family: var(--font-data); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.1rem); font-weight: 700; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+  .lede { color: var(--ink-soft); font-size: 1rem; max-width: 66ch; }
+
+  .criteria {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-3); margin-bottom: var(--space-8);
+    padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-md);
+    background: var(--paper-raised);
+  }
+  .criteria div { font-size: 0.82rem; color: var(--ink-soft); }
+  .criteria strong { display: block; color: var(--ink); font-size: 0.86rem; margin-bottom: 2px; }
+
+  .directions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+  }
+  .direction-card {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--paper-raised);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .direction-card.wide { grid-column: 1 / -1; }
+  .direction-header {
+    padding: var(--space-4) var(--space-4) var(--space-3);
+    border-bottom: 1px solid var(--line);
+  }
+  .direction-number {
+    font-family: var(--font-data); font-size: 0.72rem; color: var(--muted);
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .direction-title { font-size: 1rem; font-weight: 700; margin: 2px 0 4px; }
+  .direction-desc { font-size: 0.82rem; color: var(--ink-soft); margin: 0; }
+  .direction-body { padding: var(--space-4); display: flex; justify-content: center; }
+
+  /* shared phone frame */
+  .phone {
+    width: 240px; height: 460px;
+    border: 1px solid var(--line-strong);
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    background: var(--paper);
+    flex-shrink: 0;
+  }
+  .phone.wide-frame { width: 100%; max-width: 640px; height: 340px; border-radius: var(--radius-lg); }
+
+  .map-fill {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 35% 30%, var(--accent-soft), transparent 55%), var(--paper);
+  }
+  .map-fill svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  /* "your location" — teardrop pin, deliberately not a circle, so it can never be mistaken for a stop */
+  .pin-dot {
+    position: absolute; width: 16px; height: 16px;
+    background: var(--accent);
+    border-radius: 50% 50% 50% 0;
+    box-shadow: 0 0 0 1.5px var(--line-strong), 0 1px 2px rgba(0,0,0,0.18);
+    transform: translate(-50%, -100%) rotate(-45deg);
+  }
+  .pin-dot .pin-eye {
+    position: absolute; width: 6px; height: 6px; top: 50%; left: 50%;
+    background: var(--paper-raised); border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .stop-dot {
+    position: absolute; width: 9px; height: 9px; border-radius: 50%;
+    border: 2px solid var(--paper-raised); transform: translate(-50%, -50%);
+  }
+
+  .mini-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper);
+  }
+  .mini-chip {
+    flex-shrink: 0; min-width: 26px; height: 18px; padding: 0 6px;
+    border-radius: 999px; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-data); font-size: 0.58rem; font-weight: 700; white-space: nowrap;
+  }
+  .mini-name { font-size: 0.68rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mini-sub { font-size: 0.6rem; color: var(--muted); }
+  .mini-status {
+    margin-left: auto; font-family: var(--font-data); font-size: 0.6rem; font-weight: 700;
+    padding: 2px 6px; border-radius: 999px; white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+  .mini-status.live { color: var(--live); background: var(--live-bg); }
+  .mini-status.unavailable { color: var(--unavail); background: var(--unavail-bg); }
+
+  .trust-line { font-size: 0.55rem; color: var(--muted); padding: 6px 10px; }
+
+  /* Direction 1: bottom sheet */
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: var(--paper-raised); border-top: 1px solid var(--line);
+    border-radius: 18px 18px 0 0; box-shadow: 0 -4px 14px rgba(0,0,0,0.06);
+    padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 6px;
+    height: 46%;
+  }
+  .sheet-handle { width: 32px; height: 4px; border-radius: 999px; background: var(--line-strong); margin: 0 auto 4px; }
+
+  /* Direction 2: split stack */
+  .split-stack { display: flex; flex-direction: column; height: 100%; }
+  .split-stack .map-half { position: relative; height: 52%; border-bottom: 1px solid var(--line); }
+  .split-stack .list-half { flex: 1; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+  .list-title { font-size: 0.72rem; font-weight: 700; color: var(--ink-soft); margin: 0 0 2px; }
+
+  /* plain-language ETA line (walk + bus, spoken as a sentence) */
+  .mini-eta { font-size: 0.66rem; color: var(--ink-soft); line-height: 1.35; }
+  .mini-eta .flag { font-weight: 700; }
+  .mini-eta .flag.close { color: var(--caution); }
+  .mini-eta .flag.miss { color: var(--unavail); }
+  .mini-eta .live-word { color: var(--live); font-weight: 600; }
+  .mini-eta .unavail-word { color: var(--unavail); font-weight: 600; }
+
+  /* station vs paradero markers */
+  .marker-taxonomy { display: flex; flex-wrap: wrap; gap: var(--space-6); padding: var(--space-5); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--paper-raised); }
+  .taxonomy-item { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); width: 130px; }
+  .taxonomy-item .caption { font-size: 0.74rem; color: var(--ink-soft); text-align: center; line-height: 1.3; }
+  .taxonomy-svg { width: 40px; height: 40px; }
+
+  /* Direction 3: list-first */
+  .list-first { padding: 10px; display: flex; flex-direction: column; gap: 6px; height: 100%; }
+  .list-first .list-heading { font-size: 0.78rem; font-weight: 700; margin-bottom: 2px; }
+  .mini-row.expanded { flex-direction: column; align-items: stretch; gap: 4px; }
+  .mini-row.expanded .mini-row-top { display: flex; align-items: center; gap: 8px; }
+  .mini-map-btn {
+    align-self: flex-start; font-size: 0.58rem; color: var(--accent-ink); background: var(--accent-soft);
+    border-radius: 999px; padding: 2px 8px; font-weight: 600;
+  }
+
+  /* Direction 4: map-dominant */
+  .map-dominant { position: relative; height: 100%; }
+  .chip-strip {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    display: flex; gap: 6px; padding: 10px; overflow-x: auto;
+    background: linear-gradient(to top, var(--paper) 55%, transparent);
+  }
+  .chip-pill {
+    flex-shrink: 0; display: flex; align-items: center; gap: 5px;
+    padding: 5px 9px; border-radius: 999px; background: var(--paper-raised);
+    border: 1px solid var(--line-strong); font-size: 0.62rem; font-weight: 600;
+  }
+  .chip-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* Direction 5: side by side */
+  .side-by-side { display: flex; height: 100%; }
+  .side-by-side .map-side { flex: 1.4; position: relative; border-right: 1px solid var(--line); }
+  .side-by-side .list-side { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+
+  .recommend {
+    padding: var(--space-5); border-radius: var(--radius-lg);
+    background: var(--accent-soft); color: var(--accent-ink); margin-bottom: var(--space-6);
+  }
+  .recommend h2 { margin: 0 0 var(--space-2); font-size: 1.05rem; }
+  .recommend p { margin: 0 0 var(--space-2); font-size: 0.92rem; max-width: 72ch; }
+  .recommend p:last-child { margin-bottom: 0; }
+
+  .controls {
+    display: flex; gap: var(--space-3); align-items: center; margin-bottom: var(--space-6);
+    padding: var(--space-3) var(--space-4); background: var(--paper-raised);
+    border: 1px solid var(--line); border-radius: var(--radius-md);
+  }
+  .controls .label { font-size: 0.78rem; color: var(--muted); margin-right: var(--space-2); }
+  button.toggle {
+    font-family: var(--font-ui); font-size: 0.85rem; font-weight: 600;
+    border: 1px solid var(--line-strong); background: var(--paper); color: var(--ink-soft);
+    padding: 6px 12px; border-radius: 999px; cursor: pointer;
+  }
+  button.toggle[aria-pressed="true"] { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="intro">
+    <span class="eyebrow">public_transport — UX design workflow · step 9 reference</span>
+    <h1>Design direction mockups</h1>
+    <p class="lede">Five structural directions for the one screen that matters most — the nearby-routes/stops comparison view — all built on the Visual Design Foundation already locked in (Páramo accent, TM/SITP system colors, corridor colors, capsule bus markers). What differs is layout, information hierarchy, and how map and list share space.</p>
+  </header>
+
+  <div class="controls">
+    <span class="label">Theme</span>
+    <button class="toggle" id="theme-light" aria-pressed="false">Light</button>
+    <button class="toggle" id="theme-dark" aria-pressed="false">Dark</button>
+    <button class="toggle" id="theme-system" aria-pressed="true">System</button>
+  </div>
+
+  <div class="criteria">
+    <div><strong>Layout intuitiveness</strong>Does the hierarchy match "see everything nearby at once"?</div>
+    <div><strong>Interaction style</strong>How much gesture/JS complexity does it demand?</div>
+    <div><strong>Visual weight</strong>Map-dominant vs. list-dominant vs. balanced.</div>
+    <div><strong>Progressive enhancement</strong>Does it degrade sensibly with slow/failed JS?</div>
+    <div><strong>Brand alignment</strong>Calm, confident, teach-not-trap — or does it feel app-slick instead?</div>
+  </div>
+
+  <div class="directions-grid">
+
+    <div class="direction-card">
+      <div class="direction-header">
+        <span class="direction-number">Direction 1</span>
+        <div class="direction-title">Bottom sheet</div>
+        <p class="direction-desc">Full-bleed map, draggable sheet peeking up from the bottom with the route list. Most "app-native" feel (Uber/Google Maps convention).</p>
+      </div>
+      <div class="direction-body">
+        <div class="phone">
+          <div class="map-fill">
+            <svg viewBox="0 0 240 460" fill="none">
+              <path d="M0,300 C50,280 80,150 140,140 C190,132 220,180 240,160" stroke="#80BA27" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <div class="pin-dot" style="left:48%; top:38%;"><span class="pin-eye"></span></div>
+            <div class="stop-dot" style="left:58%; top:31%; background:#80BA27; border-color:var(--paper-raised);"></div>
+          </div>
+          <div class="sheet">
+            <div class="sheet-handle"></div>
+            <div class="mini-row">
+              <div class="mini-chip" style="background:#80BA27;color:#1a2b0a">B</div>
+              <div><div class="mini-name">Norte · Portal Norte</div><div class="mini-sub">90 m</div></div>
+              <span class="mini-status live">3 min</span>
+            </div>
+            <div class="mini-row">
+              <div class="mini-chip" style="background:#F18401;color:#3a1f00">H</div>
+              <div><div class="mini-name">Caracas Sur · Centro</div><div class="mini-sub">210 m</div></div>
+              <span class="mini-status live">7 min</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="direction-card">
+      <div class="direction-header">
+        <span class="direction-number">Direction 2</span>
+        <div class="direction-title">Split stack</div>
+        <p class="direction-desc">Map fixed to the top half, list fills the rest below — no overlap, no drag gesture. Simplest DOM: works as a static stack even before JS/map load.</p>
+      </div>
+      <div class="direction-body">
+        <div class="phone">
+          <div class="split-stack">
+            <div class="map-half">
+              <div class="map-fill">
+                <svg viewBox="0 0 240 240" fill="none">
+                  <path d="M0,160 C50,150 80,60 140,55 C190,50 220,90 240,75" stroke="#80BA27" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+                <div class="pin-dot" style="left:48%; top:55%;"><span class="pin-eye"></span></div>
+                <div class="stop-dot" style="left:60%; top:25%; background:#80BA27; border-color:var(--paper-raised);"></div>
+              </div>
+            </div>
+            <div class="list-half">
+              <div class="list-title">Cerca de ti</div>
+              <div class="mini-row">
+                <div class="mini-chip" style="background:#80BA27;color:#1a2b0a">B</div>
+                <div>
+                  <div class="mini-name">Norte · Portal Norte</div>
+                  <div class="mini-eta">Llega en <span class="live-word">3 min</span> · 2 min caminando</div>
+                </div>
+              </div>
+              <div class="mini-row">
+                <div class="mini-chip" style="background:#D5B07B;color:#3a2a0a">K</div>
+                <div>
+                  <div class="mini-name">Calle 26 · Ricaurte</div>
+                  <div class="mini-eta"><span class="unavail-word">Sin datos en vivo</span> · 3 min caminando</div>
+                </div>
+              </div>
+              <div class="mini-row">
+                <div class="mini-chip" style="background:#F18401;color:#3a1f00">H</div>
+                <div>
+                  <div class="mini-name">Caracas Sur · Centro</div>
+                  <div class="mini-eta">Llega en 5 min · 4 min caminando — <span class="flag close">sal ya</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="direction-card">
+      <div class="direction-header">
+        <span class="direction-number">Direction 3</span>
+        <div class="direction-title">List-first</div>
+        <p class="direction-desc">The list is primary; the map is an optional "Ver en mapa" enhancement per row, not a fixed block. Leanest payload, most naturally accessible/no-JS-safe.</p>
+      </div>
+      <div class="direction-body">
+        <div class="phone">
+          <div class="list-first">
+            <div class="list-heading">Cerca de ti — 4 rutas</div>
+            <div class="mini-row expanded">
+              <div class="mini-row-top">
+                <div class="mini-chip" style="background:#80BA27;color:#1a2b0a">B</div>
+                <div><div class="mini-name">Norte · Portal Norte</div><div class="mini-sub">90 m</div></div>
+                <span class="mini-status live">3 min</span>
+              </div>
+              <span class="mini-map-btn">Ver en mapa</span>
+            </div>
+            <div class="mini-row expanded">
+              <div class="mini-row-top">
+                <div class="mini-chip" style="background:#D5B07B;color:#3a2a0a">K</div>
+                <div><div class="mini-name">Calle 26 · Ricaurte</div><div class="mini-sub">140 m</div></div>
+                <span class="mini-status unavailable">Sin datos</span>
+              </div>
+              <span class="mini-map-btn">Ver en mapa</span>
+            </div>
+            <div class="mini-row expanded">
+              <div class="mini-row-top">
+                <div class="mini-chip" style="background:#F18401;color:#3a1f00">H</div>
+                <div><div class="mini-name">Caracas Sur · Centro</div><div class="mini-sub">210 m</div></div>
+                <span class="mini-status live">7 min</span>
+              </div>
+              <span class="mini-map-btn">Ver en mapa</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="direction-card">
+      <div class="direction-header">
+        <span class="direction-number">Direction 4</span>
+        <div class="direction-title">Map-dominant, minimal chrome</div>
+        <p class="direction-desc">Map fills ~85% of the screen; routes reduce to a scrollable chip strip along the bottom edge. Leans hardest into "map-first," but hides full detail by default.</p>
+      </div>
+      <div class="direction-body">
+        <div class="phone">
+          <div class="map-dominant">
+            <div class="map-fill">
+              <svg viewBox="0 0 240 460" fill="none">
+                <path d="M0,300 C50,280 80,150 140,140 C190,132 220,180 240,160" stroke="#80BA27" stroke-width="3" stroke-linecap="round"/>
+                <path d="M10,60 C60,90 110,200 170,220 C200,230 220,210 240,225" stroke="#F18401" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+              </svg>
+              <div class="pin-dot" style="left:48%; top:38%;"><span class="pin-eye"></span></div>
+            </div>
+            <div class="chip-strip">
+              <div class="chip-pill"><span class="dot" style="background:#80BA27"></span>B · 3 min</div>
+              <div class="chip-pill"><span class="dot" style="background:#D5B07B"></span>K · —</div>
+              <div class="chip-pill"><span class="dot" style="background:#F18401"></span>H · 7 min</div>
+              <div class="chip-pill"><span class="dot" style="background:#1F5FA8"></span>K309 · —</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="direction-card wide">
+      <div class="direction-header">
+        <span class="direction-number">Direction 5</span>
+        <div class="direction-title">Side-by-side (tablet/desktop)</div>
+        <p class="direction-desc">Map and list sit permanently side by side once there's width to spare — the natural wide-viewport extension of Direction 2's split-stack, not a separate design language.</p>
+      </div>
+      <div class="direction-body">
+        <div class="phone wide-frame">
+          <div class="side-by-side">
+            <div class="map-side">
+              <div class="map-fill">
+                <svg viewBox="0 0 380 340" fill="none">
+                  <path d="M10,260 C90,240 140,100 220,90 C280,82 320,140 370,110" stroke="#80BA27" stroke-width="3" stroke-linecap="round"/>
+                  <path d="M20,60 C100,90 170,220 250,240 C300,252 330,220 370,235" stroke="#F18401" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+                </svg>
+                <div class="pin-dot" style="left:44%; top:50%;"><span class="pin-eye"></span></div>
+              </div>
+            </div>
+            <div class="list-side">
+              <div class="list-title">Cerca de ti</div>
+              <div class="mini-row">
+                <div class="mini-chip" style="background:#80BA27;color:#1a2b0a">B</div>
+                <div>
+                  <div class="mini-name">Norte · Portal Norte</div>
+                  <div class="mini-eta">Llega en <span class="live-word">3 min</span> · 2 min caminando</div>
+                </div>
+              </div>
+              <div class="mini-row">
+                <div class="mini-chip" style="background:#D5B07B;color:#3a2a0a">K</div>
+                <div>
+                  <div class="mini-name">Calle 26 · Ricaurte</div>
+                  <div class="mini-eta"><span class="unavail-word">Sin datos en vivo</span> · 3 min caminando</div>
+                </div>
+              </div>
+              <div class="mini-row">
+                <div class="mini-chip" style="background:#F18401;color:#3a1f00">H</div>
+                <div>
+                  <div class="mini-name">Caracas Sur · Centro</div>
+                  <div class="mini-eta">Llega en 5 min · 4 min caminando — <span class="flag close">sal ya</span></div>
+                </div>
+              </div>
+              <div class="mini-row">
+                <div class="mini-chip" style="background:#1F5FA8;color:#fff">K309</div>
+                <div>
+                  <div class="mini-name">TransMiZonal · San Pablo</div>
+                  <div class="mini-eta"><span class="unavail-word">Sin datos en vivo</span> · 1 min caminando</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="recommend">
+    <h2>Recommendation: Direction 2, Split Stack</h2>
+    <p>The Core Experience principle established earlier treats seeing the map, seeing the full list, and moving the pin as <em>equally critical</em> — not a primary flow plus edge cases. Split Stack is the only direction that keeps map and list permanently, simultaneously visible without a gesture layer or a hidden-by-default state standing between the rider and either one.</p>
+    <p>It's also the cleanest fit for Progressive Enhancement (PRD Web App Requirements): map-block-then-list-block is a trivial server-rendered DOM order — if the map/JS layer is slow or fails, the list still renders in place, no broken drag-sheet or dead "ver en mapa" button. Direction 1 (bottom sheet) is the most polished-feeling but needs real gesture-handling JS, disproportionate complexity for a solo, no-build stack. Direction 3 undersells the map-first identity that's core to the brief. Direction 4 hides full route detail behind a chip carousel, in tension with "always show the full nearby picture, never a single answer." Direction 5 isn't a competing choice — it's how Direction 2 naturally extends once there's desktop width to spare.</p>
+  </div>
+
+  <section style="margin-bottom: var(--space-8)">
+    <h2 style="font-size:1.05rem;font-weight:700;margin:0 0 var(--space-1)">Open questions, resolved</h2>
+    <p style="color:var(--muted);font-size:0.88rem;max-width:70ch;margin:0 0 var(--space-5)">Three gaps surfaced while reviewing the chosen direction: what the displayed time actually means, how visually-overlapping routes render, and what a bus stop looks like. All three are now folded into Direction 2/5 above (the mockups already reflect the fix) and explained here.</p>
+
+    <div class="direction-card" style="margin-bottom: var(--space-5)">
+      <div class="direction-header">
+        <div class="direction-title">1. Walk time + bus ETA, in plain language</div>
+        <p class="direction-desc">Not icon+number pairs, but a sentence a knowledgeable friend would actually say: <strong>"Llega en X min · Y min caminando."</strong> A comfortable margin needs nothing further. A tight one gets an honest, action-oriented close: <strong>sal ya</strong> (leave now) or <strong>no alcanzas</strong> (you won't make it) — still shown, never hidden. Both times derive from the stop's already-known straight-line distance, not a new routing dependency.</p>
+      </div>
+      <div class="direction-body" style="justify-content:flex-start; padding-top:0">
+        <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:340px">
+          <div class="mini-row">
+            <div class="mini-chip" style="background:#80BA27;color:#1a2b0a">B</div>
+            <div>
+              <div class="mini-name">Norte · Portal Norte</div>
+              <div class="mini-eta">Llega en <span class="live-word">3 min</span> · 2 min caminando</div>
+            </div>
+          </div>
+          <div class="mini-row">
+            <div class="mini-chip" style="background:#F18401;color:#3a1f00">H</div>
+            <div>
+              <div class="mini-name">Caracas Sur · Centro</div>
+              <div class="mini-eta">Llega en 5 min · 4 min caminando — <span class="flag close">sal ya</span></div>
+            </div>
+          </div>
+          <div class="mini-row">
+            <div class="mini-chip" style="background:#D5B07B;color:#3a2a0a">K</div>
+            <div>
+              <div class="mini-name">Calle 26 · Ricaurte</div>
+              <div class="mini-eta">Llega en 4 min · 6 min caminando — <span class="flag miss">no alcanzas</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="direction-card" style="margin-bottom: var(--space-5)">
+      <div class="direction-header">
+        <div class="direction-title">2. Overlapping / parallel routes — bundled, not stacked</div>
+        <p class="direction-desc">Where two or more routes share the same physical corridor for a stretch (real for TM trunk lanes), each line offsets a few pixels perpendicular to the shared path so every corridor color stays visible as thin parallel strokes — the standard transit-cartography fix (Citymapper, official metro diagrams), not a novel invention. Routes that only cross at a point need no offset; only genuinely parallel shared segments do.</p>
+      </div>
+      <div class="direction-body">
+        <div style="width:100%; max-width:420px; height:160px; position:relative; border:1px solid var(--line); border-radius:var(--radius-md); overflow:hidden; background:var(--paper)">
+          <svg viewBox="0 0 420 160" fill="none" style="position:absolute;inset:0;width:100%;height:100%">
+            <path d="M10,120 C90,110 140,60 220,55" stroke="#80BA27" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M12,125 C92,115 142,65 220,60" stroke="#F18401" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M14,130 C94,120 144,70 220,65" stroke="#8264AA" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M220,55 C280,52 320,40 405,20" stroke="#80BA27" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M220,60 C270,75 300,110 405,130" stroke="#F18401" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M220,65 C260,90 280,130 340,145" stroke="#8264AA" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          <span style="position:absolute; left:10px; top:8px; font-size:0.66rem; color:var(--muted)">Shared corridor — B, H, D bundled</span>
+          <span style="position:absolute; right:12px; top:8px; font-size:0.66rem; color:var(--muted)">Routes diverge</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="direction-card">
+      <div class="direction-header">
+        <div class="direction-title">3. Stop markers — station vs. paradero vs. "your location"</div>
+        <p class="direction-desc">The halo-ring station marker turned out to sit too close, visually, to the "you are here" pin — both were circular dots with a ring/border treatment. Fixed by giving location a genuinely different <strong>silhouette</strong>, not just a color: a teardrop pin, the universally-recognized "this point was chosen" shape, anchored at its point rather than its center. Circles stay reserved for the network itself (stops), the teardrop is reserved for the one point that's about the rider. TM stations keep the <strong>halo-ring</strong> — a larger dot with a ring around it, the "interchange station" convention from real metro diagrams. SITP paraderos keep the plain small dot. Neither stop type defaults to a route's color — a stop can serve many routes at once, so at rest it stays neutral with a small route-count badge, taking on a route's color only once that route is selected.</p>
+      </div>
+      <div class="direction-body">
+        <div class="marker-taxonomy">
+          <div class="taxonomy-item">
+            <svg class="taxonomy-svg" viewBox="0 0 24 24">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="var(--accent)"/>
+              <circle cx="12" cy="9" r="2.6" fill="var(--paper-raised)"/>
+            </svg>
+            <span class="caption">"Tu ubicación" — teardrop, anchored at its point, never a circle</span>
+          </div>
+          <div class="taxonomy-item">
+            <svg class="taxonomy-svg" viewBox="0 0 40 40">
+              <circle cx="20" cy="20" r="11" fill="none" stroke="var(--line-strong)" stroke-width="2"/>
+              <circle cx="20" cy="20" r="5" fill="var(--paper-raised)" stroke="var(--ink-soft)" stroke-width="2"/>
+            </svg>
+            <span class="caption">TM station — halo ring, enclosed platform, closed system</span>
+          </div>
+          <div class="taxonomy-item">
+            <svg class="taxonomy-svg" viewBox="0 0 40 40">
+              <circle cx="20" cy="20" r="6" fill="var(--paper-raised)" stroke="var(--line-strong)" stroke-width="2.5"/>
+            </svg>
+            <span class="caption">SITP paradero — plain dot, curbside stop, open system</span>
+          </div>
+          <div class="taxonomy-item">
+            <svg class="taxonomy-svg" viewBox="0 0 40 40">
+              <circle cx="18" cy="20" r="11" fill="none" stroke="var(--line-strong)" stroke-width="2"/>
+              <circle cx="18" cy="20" r="5" fill="var(--paper-raised)" stroke="var(--ink-soft)" stroke-width="2"/>
+              <circle cx="30" cy="10" r="7" fill="var(--ink)"/>
+              <text x="30" y="13" text-anchor="middle" font-size="8" font-weight="700" fill="var(--paper)">12</text>
+            </svg>
+            <span class="caption">Multi-route station, at rest — count badge, no single route color</span>
+          </div>
+          <div class="taxonomy-item">
+            <svg class="taxonomy-svg" viewBox="0 0 40 40">
+              <circle cx="20" cy="20" r="8" fill="#80BA27" stroke="var(--paper-raised)" stroke-width="2.5"/>
+            </svg>
+            <span class="caption">Paradero, route B selected — fills with corridor color</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btns = {
+      light: document.getElementById('theme-light'),
+      dark: document.getElementById('theme-dark'),
+      system: document.getElementById('theme-system')
+    };
+    function setTheme(mode) {
+      if (mode === 'system') { root.removeAttribute('data-theme'); }
+      else { root.setAttribute('data-theme', mode); }
+      Object.keys(btns).forEach(function (k) { btns[k].setAttribute('aria-pressed', String(k === mode)); });
+    }
+    btns.light.addEventListener('click', function () { setTheme('light'); });
+    btns.dark.addEventListener('click', function () { setTheme('dark'); });
+    btns.system.addEventListener('click', function () { setTheme('system'); });
+  })();
+</script>
+
+</body>
+</html>
