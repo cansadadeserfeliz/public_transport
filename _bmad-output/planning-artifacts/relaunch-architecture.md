@@ -1,9 +1,9 @@
 ---
 stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8]
 inputDocuments:
-  - _bmad-output/planning-artifacts/prd.md
-  - _bmad-output/planning-artifacts/product-brief-public_transport.md
-  - _bmad-output/planning-artifacts/implementation-readiness-report-2026-08-05.md
+  - _bmad-output/planning-artifacts/relaunch-prd.md
+  - _bmad-output/planning-artifacts/relaunch-product-brief.md
+  - _bmad-output/planning-artifacts/relaunch-implementation-readiness-report-2026-08-05.md
   - _bmad-output/project-context.md
 workflowType: 'architecture'
 project_name: 'public_transport'

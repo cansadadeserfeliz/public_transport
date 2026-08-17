@@ -1,7 +1,7 @@
 ---
 title: "Product Brief Distillate: public_transport"
 type: llm-distillate
-source: "product-brief-public_transport.md"
+source: "relaunch-product-brief.md"
 created: "2026-08-02"
 purpose: "Token-efficient context for downstream PRD creation"
 ---

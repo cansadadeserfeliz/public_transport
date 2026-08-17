@@ -1,7 +1,7 @@
 ---
 inputDocuments:
-  - _bmad-output/planning-artifacts/product-brief-public_transport.md
-  - _bmad-output/planning-artifacts/product-brief-public_transport-distillate.md
+  - _bmad-output/planning-artifacts/relaunch-product-brief.md
+  - _bmad-output/planning-artifacts/relaunch-product-brief-distillate.md
   - _bmad-output/project-context.md
 workflowType: 'prd'
 classification:

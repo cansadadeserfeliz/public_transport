@@ -12,7 +12,7 @@ stepsCompleted: [1, 2, 3, 4, 5, 6]
 ### PRD Documents
 
 **Whole Documents:**
-- prd.md (23,032 bytes, modified 2026-08-02 13:22)
+- relaunch-prd.md (23,032 bytes, modified 2026-08-02 13:22; filename at the time of this report was `prd.md`)
 
 **Sharded Documents:**
 - None found
@@ -43,8 +43,8 @@ stepsCompleted: [1, 2, 3, 4, 5, 6]
 
 ### Other Related Files (not part of assessment inputs)
 
-- product-brief-public_transport.md (14,223 bytes, modified 2026-08-02 15:01)
-- product-brief-public_transport-distillate.md (12,344 bytes, modified 2026-08-02 11:01)
+- relaunch-product-brief.md (14,223 bytes, modified 2026-08-02 15:01; filename at the time of this report was `product-brief-public_transport.md`)
+- relaunch-product-brief-distillate.md (12,344 bytes, modified 2026-08-02 11:01; filename at the time of this report was `product-brief-public_transport-distillate.md`)
 - project-context.md (in `_bmad-output/`)
 
 ### Issues Found
@@ -59,7 +59,7 @@ No duplicate documents found (no whole+sharded conflicts).
 
 ### Documents Selected for Assessment
 
-- PRD: `prd.md`
+- PRD: `relaunch-prd.md` (named `prd.md` at the time of this report)
 
 ## Step 2: PRD Analysis
 
