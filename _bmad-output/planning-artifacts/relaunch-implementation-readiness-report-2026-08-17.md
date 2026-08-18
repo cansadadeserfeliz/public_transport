@@ -9,11 +9,11 @@ readinessStatus: 'READY'
 reVerified:
   - date: '2026-08-17'
     scope: 'step-04-ux-alignment only, per user request'
-    result: 'Both first-pass findings (Corridor/troncal data, FR5-FR6 UX coverage) confirmed resolved after fixes to relaunch-architecture.md and ux-design-specification.md'
+    result: 'Both first-pass findings (Corridor/troncal data, FR5-FR6 UX coverage) confirmed resolved after fixes to relaunch-architecture.md and relaunch-ux-design-specification.md'
 documentsIncluded:
   prd: '_bmad-output/planning-artifacts/relaunch-prd.md'
   architecture: '_bmad-output/planning-artifacts/relaunch-architecture.md'
-  ux: '_bmad-output/planning-artifacts/ux-design-specification.md'
+  ux: '_bmad-output/planning-artifacts/relaunch-ux-design-specification.md'
   epicsAndStories: null
 supersedes: '_bmad-output/planning-artifacts/relaunch-implementation-readiness-report-2026-08-05.md'
 ---
@@ -27,7 +27,7 @@ supersedes: '_bmad-output/planning-artifacts/relaunch-implementation-readiness-r
 
 **PRD:** `relaunch-prd.md` (whole document, last edited 2026-08-17 — FR11/NFR8 amendment)
 **Architecture:** `relaunch-architecture.md` (whole document, last edited 2026-08-17 — Data Model Amendment)
-**UX Design:** `ux-design-specification.md` (whole document, last edited 2026-08-17 18:23)
+**UX Design:** `relaunch-ux-design-specification.md` (whole document, last edited 2026-08-17 18:23)
 **Epics & Stories:** Not found — not yet created; noted as not-yet-applicable rather than a gap, since this assessment runs *before* `bmad-create-epics-and-stories`.
 
 No duplicate (whole + sharded) document conflicts found for any document type.
@@ -130,7 +130,7 @@ All 20 FRs are therefore **pending**, not **missing** — there is no coverage g
 
 ### UX Document Status
 
-**Found.** `ux-design-specification.md`, complete (14/14 steps), dated 2026-08-17, listing both `relaunch-prd.md` and `relaunch-architecture.md` as input documents. Full document read for this assessment (492 lines), not sampled.
+**Found.** `relaunch-ux-design-specification.md`, complete (14/14 steps), dated 2026-08-17, listing both `relaunch-prd.md` and `relaunch-architecture.md` as input documents. Full document read for this assessment (492 lines), not sampled.
 
 ### Positive Alignment (confirmed, not just absence of conflict)
 
@@ -152,7 +152,7 @@ Original finding: UX's Color System treats per-corridor trunk-route color as fou
 
 **2. ~~Warning~~ RESOLVED — FR5/FR6 (browse/search) UX coverage.**
 Original finding: FR5 (browse full route list) and FR6 (search by name/number) had no corresponding component anywhere in the UX spec, and the one place the document seemed to notice ("route search... N/A") never surfaced it as a decision.
-- **Fix verified in `ux-design-specification.md`:** a fifth Custom Component, **Route Directory**, was added — a secondary, low-emphasis page (plain filterable route list + existing Route Detail Panel), explicitly not on the homepage, with a documented decision (2026-08-17) to keep FR5/FR6 in MVP scope rather than defer them, and reasoning for why (the per-route detail page and its shareable URL already exist; only discovery was missing). The three places that previously overstated "no search anywhere" (Core Experience, Form Patterns, the Accessibility Strategy bullet quoting NFR13) were each corrected to clarify the no-search principle applies to the *landing experience*, not the whole app.
+- **Fix verified in `relaunch-ux-design-specification.md`:** a fifth Custom Component, **Route Directory**, was added — a secondary, low-emphasis page (plain filterable route list + existing Route Detail Panel), explicitly not on the homepage, with a documented decision (2026-08-17) to keep FR5/FR6 in MVP scope rather than defer them, and reasoning for why (the per-route detail page and its shareable URL already exist; only discovery was missing). The three places that previously overstated "no search anywhere" (Core Experience, Form Patterns, the Accessibility Strategy bullet quoting NFR13) were each corrected to clarify the no-search principle applies to the *landing experience*, not the whole app.
 - **Confirmed:** FR5 and FR6 now each have a direct component to trace to, consistent with the rest of the FR→component mapping. No remaining gap.
 
 ### Warnings
@@ -167,7 +167,7 @@ None. No case found, in either pass, of architecture failing to support a UX req
 
 ### Overall Readiness Status
 
-**READY** — updated 2026-08-17 after re-verifying the UX Alignment section against fixes applied to both `relaunch-architecture.md` (Corridor model) and `ux-design-specification.md` (Route Directory component). Both issues found on the first pass are confirmed resolved (see UX Alignment Assessment above). No open issues remain in any section of this assessment.
+**READY** — updated 2026-08-17 after re-verifying the UX Alignment section against fixes applied to both `relaunch-architecture.md` (Corridor model) and `relaunch-ux-design-specification.md` (Route Directory component). Both issues found on the first pass are confirmed resolved (see UX Alignment Assessment above). No open issues remain in any section of this assessment.
 
 PRD, Architecture, and UX are each internally consistent as of today's edits and cross-consistent with each other. Epic Coverage and Epic Quality remain correctly not-applicable — there's nothing to write epics against yet, which was the point of running this check *before* `bmad-create-epics-and-stories` rather than after.
 

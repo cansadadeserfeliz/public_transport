@@ -11,10 +11,14 @@ classification:
   complexityNote: "Elevated from low — driven by technical complexity of the live bus-position dependency and recurring GTFS refresh pipeline, and legal/ToS exposure of the unofficial live-tracking API, not by domain regulation."
   projectContext: brownfield
 stepsCompleted: [step-01-init, step-02-discovery, step-02b-vision, step-02c-executive-summary, step-03-success, step-04-journeys, step-05-domain, step-06-innovation, step-07-project-type, step-08-scoping, step-09-functional, step-10-nonfunctional, step-11-polish, step-12-complete, step-e-01-discovery, step-e-02-review, step-e-03-edit]
-lastEdited: '2026-08-17'
+lastEdited: '2026-08-18'
 editHistory:
   - date: '2026-08-17'
     changes: 'Reconciled FR11 and NFR8 with the manual (non-scheduled) GTFS refresh trigger decided in relaunch-architecture.md — closes an outstanding action item from that architecture pass.'
+  - date: '2026-08-18'
+    changes: 'Reconciled FR1–FR4 wording with the Risk Mitigation Strategy''s trunk/BRT-only nearby-query MVP scoping — FR1–4 previously said "all routes and stops," silently contradicting that decision.'
+  - date: '2026-08-18'
+    changes: 'FR11: replaced tautological "riders never see data older than the last refresh" wording with a real freshness signal — a rider-facing last-refreshed disclosure plus an informal (not system-enforced) maintainer cadence expectation.'
 ---
 
 # Product Requirements Document - public_transport
@@ -202,10 +206,10 @@ Explicitly not a priority — growth is via shared links and word of mouth, not 
 
 ### Nearby Route & Stop Discovery (core differentiator)
 
-- FR1: Rider can view all routes and stops near their current location on a single map, without selecting a specific route first.
-- FR2: Rider can view all routes and stops near a location they choose (not just live GPS), to plan a trip before leaving home.
-- FR3: Rider can compare live bus proximity across multiple nearby stops simultaneously, to decide which stop to walk to.
-- FR4: Rider can identify which routes are shared across multiple nearby stops, to spot redundant or overlapping options.
+- FR1: Rider can view all trunk (BRT/troncal) routes and stops near their current location on a single map, without selecting a specific route first. **(Amended 2026-08-18: scoped to trunk/BRT for MVP, matching the Risk Mitigation Strategy's "index and query only trunk/BRT stops and routes for the nearby view at MVP" simplification — was previously worded as "all routes and stops," contradicting that decision. Zonal expansion is Phase 2, per Growth Features.)**
+- FR2: Rider can view all trunk (BRT/troncal) routes and stops near a location they choose (not just live GPS), to plan a trip before leaving home. **(Amended 2026-08-18: same trunk/BRT MVP scoping as FR1.)**
+- FR3: Rider can compare live bus proximity across multiple nearby trunk stops simultaneously, to decide which stop to walk to.
+- FR4: Rider can identify which trunk routes are shared across multiple nearby stops, to spot redundant or overlapping options.
 
 ### Route & Stop Browsing
 
@@ -221,7 +225,7 @@ Explicitly not a priority — growth is via shared links and word of mouth, not 
 
 ### Data Currency (system capability)
 
-- FR11: System can refresh static route/stop/schedule data from the official GTFS source, triggered by the maintainer, so riders never see data older than the last refresh. **(Amended 2026-08-17: refresh is maintainer-triggered, not an automatic recurring schedule — see `relaunch-architecture.md` § Core Architectural Decisions › Data Architecture, "GTFS refresh trigger model," a deliberate solo-maintainer-operability decision.)**
+- FR11: System can refresh static route/stop/schedule data from the official GTFS source, triggered by the maintainer, and rider can see when that data was last successfully refreshed, so staleness is disclosed rather than presented as confidently current. **(Amended 2026-08-17: refresh is maintainer-triggered, not an automatic recurring schedule — see `relaunch-architecture.md` § Core Architectural Decisions › Data Architecture, "GTFS refresh trigger model," a deliberate solo-maintainer-operability decision.) (Amended 2026-08-18: the original wording — "so riders never see data older than the last refresh" — was a tautology, trivially true regardless of actual staleness, and gave no real freshness signal. Two additions: (1) a rider-facing "last refreshed" disclosure, extending FR10's existing precedent — never present degraded/stale data as if it were confidently current — to static data, not just live position; (2) an informal maintainer cadence expectation, not a hard system-enforced SLA: refresh whenever TransMilenio publishes a new dated GTFS release, and always after a known route restructuring, matching the Success Criteria's existing "stays current through at least one real TransMilenio route restructuring" bar. No fixed day-count staleness threshold is imposed — the maintainer-triggered model was already a deliberate choice to avoid operational obligations a solo maintainer can't reliably keep, and an arbitrary numeric SLA would cut against that; showing the honest last-refreshed date lets a rider judge staleness for themselves rather than the system asserting a threshold it has no principled basis for.)**
 - FR12: System can alert the maintainer when the GTFS refresh pipeline fails.
 - FR13: System can alert the maintainer when the live-tracking source becomes unavailable or its response format changes.
 
