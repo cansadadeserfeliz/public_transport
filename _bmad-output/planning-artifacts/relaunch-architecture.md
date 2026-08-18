@@ -84,6 +84,7 @@ Full-stack web (server-rendered MPA) — brownfield.
 ### Architectural Implications Carried Forward
 
 - A **data migration path** is now implied: existing `BusStation.latitude`/`longitude` (`DecimalField`) → PostGIS `PointField`, and `Route`/`RouteStations` geometry needs to be populated from GTFS shapes, not the old scraper.
+- **The existing Django migration history (`routes/migrations/0001`–`0007`) should be deleted, not evolved**, once the models below land. There is no production data to preserve — the SQLite dev database is archived, not upgraded in place (per the SQLite → PostGIS resolution below), and the model changes here (`BusStation` → `BusStop` rename, `route_type` split, new fields) are extensive enough that writing incremental migrations against the old schema would just be churn against a schema being replaced wholesale. Regenerate a single fresh initial migration (`0001_initial.py`) against the new models as part of the Django 5.2/PostGIS foundation story (see Decision Impact Analysis, Implementation Sequence step 1). This is safe from Django's migration-table name collision (a fresh `0001_initial` silently treated as "already applied" if a DB already has a `routes.0001_initial` row) **only because the PostGIS database is provisioned fresh** (new Docker container, no reused database file) — this is not a general-purpose safeguard, and would need revisiting if this project ever migrates onto an already-provisioned Postgres instance instead of a brand-new one.
 - Self-managed Docker-on-VPS means **the maintainer owns monitoring/alerting infrastructure end-to-end** (ties to NFR8–NFR9) — no managed-platform health checks to lean on; this should be an explicit component in later architecture steps, not an afterthought.
 - **Note:** the Django 4.2.4 → 5.2 upgrade and SQLite → PostgreSQL/PostGIS migration should be the **first implementation story** — everything else (GTFS pipeline, nearby-query, live tracking) depends on this foundation being in place first.
 
@@ -111,9 +112,193 @@ Full-stack web (server-rendered MPA) — brownfield.
 
 - **Database:** PostgreSQL + PostGIS via GeoDjango (decided in Starter Template Evaluation), Docker image `postgis/postgis:17-3.5`.
 - **Nearby-query computation (FR1–FR4):** **Server-side**, using PostGIS `ST_DWithin`. Coordinates are sent from the client to the backend on each request but are never logged or persisted (NFR5) — this is a **policy-level guarantee enforced in code**, not an architectural guarantee by construction (contrast with the client-side alternative that was considered and not chosen). Concretely: the view/serializer handling this query must exclude the raw coordinate values from Django's request logging, and — since Sentry is also in the stack — from Sentry's captured request data (see Infrastructure & Deployment below).
-- **GTFS refresh strategy (FR11):** **Full replace inside a single DB transaction** per sync — each run rebuilds routes/stops/schedules from scratch and atomically swaps in the new dataset, rather than diffing/upserting. Avoids stale-record edge cases from partial updates.
+- **GTFS refresh strategy (FR11):** **Full replace inside a single DB transaction** per sync — each run rebuilds routes/stops/schedules from scratch and atomically swaps in the new dataset, rather than diffing/upserting. Avoids stale-record edge cases from partial updates. ⚠️ **Refined 2026-08-17** — see Data Model Amendment below: "full replace" means matched-and-replaced by GTFS natural key (`gtfs_route_id`/`gtfs_stop_id`), not truncate-and-reinsert by Django PK, so `is_active` and stable per-route/per-stop URLs (FR17–18) survive a refresh.
 - **GTFS refresh trigger model:** **Manually invoked** (a Django management command run by the maintainer), **not a scheduled/cron job**. ⚠️ **This deviates from FR11 as currently written** ("recurring schedule... without manual intervention") and from NFR8 ("alert within 24 hours of a missed or failed scheduled run" — there is no "scheduled run" to miss if it's manual). This was an explicit, informed decision (not an oversight): confirmed with the user, who will update the PRD (FR11/NFR8) to match after this architecture document is complete, via `bmad-edit-prd` or `bmad-correct-course`. **Action item, not yet done.**
 - **Caching backend:** Django's local-memory cache (in-process, no separate cache service/container). Chosen for zero added infrastructure at friends-and-family scale; revisit only if the app grows beyond a single worker process.
+
+### Data Model Amendment (2026-08-17)
+
+Pre-epics review surfaced that `routes/models.py` (`Route.route_type`, `BusStation`) predates this architecture document and was never re-validated against a current TM/SITP source. Live research against the official GTFS static feed (ArcGIS Hub, latest `2025-10-28`), the official GeoJSON open-data dumps already in `data/`, and TransMilenio's own `buscador-rutas.transmilenio.gov.co` tool (its backend, `ms-transmiapp-rm2xahnybq-uk.a.run.app`, was queried directly — unauthenticated, no spoofed headers, distinct from but same-family as the unofficial live-position `transmiapp` host) produced three model changes, decided collaboratively with Vera:
+
+**1. `BusStation` → `BusStop`, unified with a `stop_type` discriminator.**
+The two official stop datasets describe genuinely different infrastructure sharing no natural key beyond location: trunk **"Estación"** (149 rows — `troncal_estacion`, `numero_vagones_estacion`, `numero_accesos_estacion`, `biciestacion_estacion`, `tipo_estacion`) vs. zonal **"Paradero"** (7,618 rows — `cenefa`, `zona_sitp`, `via`, `direccion_bandera`, `localidad`, `consola`, `panel`, `audio`). The existing `BusStation.cenefa`/`.audio` fields are confirmed paradero-only (`routes/management/commands/load_bus_stations.py` populates them exclusively from `Paraderos_Zonales_del_SITP.geojson`) — the model has been zonal-shaped under a trunk-sounding name, with no loader ever written for the trunk-specific fields.
+- Rename to `BusStop` (matches GTFS's single `stops.txt` convention).
+- Add `stop_type` (`estacion_troncal` / `paradero_zonal`).
+- Keep one table (not two related models) — type-specific fields (`numero_vagones`, `biciestacion` for stations; `cenefa`, `zona_sitp`, `audio` for paraderos) stay nullable, populated per `stop_type`. Chosen over a split-model approach to avoid join overhead in the FR1–FR4 nearby-query spatial service, which is latency-critical (NFR2, <1s).
+- `location` (PointField) as already decided in Core Architectural Decisions supersedes both `latitude`/`longitude` DecimalFields, for both stop types.
+- `gtfs_stop_id` (unique, sourced from the GTFS feed's `stops.txt` `stop_id` column): the natural key `gtfs_refresh.py` upserts on, so a `BusStop` row's identity — and any shared URL to it — survives a refresh. **Do not assume `cenefa` or `transmilenio_id` equal the feed's `stop_id`** — both are pre-GTFS identifiers (TM website scrape, SITP paraderos open-data export respectively) that predate this project's move to GTFS as system of record; the actual mapping needs verifying against a real `stops.txt` pull (same open item as `service_tier` below), not assumed 1:1.
+
+**2. `Route.route_type` splits into `route_mode` + `service_tier`.**
+The live API's actual route object (`GET /api/v1/rutas/{id}/{code}/`) returns `"tipo": "TransMiZonal"` or `"tipo": "TransMilenio"` — a 2-value mode split, not the current model's 5 values. The Troncal/Alimentador/Urbano/Complementario/Especial vocabulary is real and current (confirmed against `bogota.gov.co`, 2026) but is a finer TM-internal service-tier concept the live API doesn't expose directly on the route object — it needs re-sourcing from the GTFS feed's `route_desc`/naming convention, **not yet verified against an actual downloaded `routes.txt`** (flagged as an open verification item below).
+- `route_mode`: `transmilenio` / `transmizonal` today. This is the GTFS-ready seam: Regiotram de Occidente (rail, under construction, ~2027 target, confirmed **not** fare-integrated with SITP — separate payment method per EFR, Feb 2024) and Metro de Bogotá Línea 1 (rail) both stay explicitly **out of scope** for this build, but would slot in as new `route_mode` values later without a structural rework, consistent with GTFS's own mode taxonomy (bus/rail/subway as sibling values). This is a deliberate documented deferral, not a silent gap.
+- `service_tier`: revalidated `troncal`/`alimentador`/`urbano`/`complementario`/`especial` — kept because it's load-bearing: the PRD's MVP nearby-query scoping ("index and query only trunk/BRT stops and routes") and FR9 (live tracking is trunk-only) both depend on filtering by tier.
+- Trunk routes additionally carry a `troncal` (corridor) grouping absent from the model today — corridor name (e.g. "Calle 26"), zone letter, corridor color, PDF diagram link. Deferred: not required for MVP FRs, noted here so it isn't rediscovered as a surprise later.
+- `gtfs_route_id` (unique, sourced from `routes.txt` `route_id`): same rationale as `BusStop.gtfs_stop_id` above — the natural key `gtfs_refresh.py` upserts on. **Do not assume `code` (e.g. `"19-1"`, `"B309"`) equals the feed's `route_id`** — `code` is the rider-facing label (kept for URLs/search/FR6), `route_id` is the feed's internal identifier; the mapping between them needs verifying against a real `routes.txt` pull, not assumed.
+- `is_active` (boolean, default `true`): the live API's search endpoint filters on an `activa` flag; the current model has no equivalent and would silently lose rows on route restructuring. Needed for the PRD's "survive a real TransMilenio route restructuring" success criterion and for keeping shared links (FR17–18) resolvable for retired routes rather than 404ing. Set by `gtfs_refresh.py`: rows matched by `gtfs_route_id` in the new feed stay `is_active=True`; rows present before the refresh but absent from the new feed are set `is_active=False`, never deleted (see refined GTFS refresh strategy in Data Architecture above).
+- `schedule` becomes structured, replacing the free-text `CharField` the old scraper never reliably parsed (`crawler/utlis.py`'s `parse_schedule` returns a hardcoded stub today). The live API returns exactly this shape: a list of `{tipoDia, inicio, fin}` entries (e.g. `L-S 4:00 AM–9:00 PM`, `D-F 5:00 AM–10:00 PM`). **Correction:** the previous draft of this note treated the live API's `tipoDia` (`L-S`/`D-F`) as equivalent to `tipo_operacion` in `data/Rutas_Zonales_SITP.geojson` (e.g. `"DOM-FEST"`) — that was an unverified assumption, not a confirmed match; they may be different vocabularies from different systems (live route-finder API vs. the zonal-routes open-data export) describing overlapping but not necessarily identical day-type concepts. **Open items, all blocking before `RouteSchedule`/`service_tier` are implemented, not just observed:** (a) only `L-S`/`D-F` seen in the two live-API samples pulled — full `tipoDia` value set unconfirmed; (b) how GTFS `calendar.txt` (weekly service pattern) and `calendar_dates.txt` (dated exceptions, including holidays) resolve precedence against each other and against whatever day-type field is chosen; (c) explicit handling for an unrecognized day-type value during ingestion — reject the row, or fail the whole refresh — rather than silently misclassifying it into the nearest known bucket.
+
+**3. Ciclovía: advisory flag, not diversion geometry.**
+Confirmed (news coverage, 2026) that Ciclovía forces a **recurring weekly** diversion (every Sunday/holiday, 7am–2pm) for zonal and "dual" routes crossing its corridors, **plus** separate ad-hoc diversions for one-off events (marches, marathons) layered on top with no confirmed structured open-data source for either the standing weekly diversions or the ad-hoc ones. Given that, the route detail panel's Ciclovía note (already assumed by `ux-design-specification.md`, lines ~209/296/380/385) is specified as:
+- A boolean/derived flag (`ciclovia_affected`, or derived from `service_tier` + known Ciclovía-corridor proximity) — **not** an attempt to store exact diverted paths, since no data source for those was found.
+- Rendered as a static, honest, plain-language note ("esta ruta puede tener desvíos los domingos y festivos, 7am–2pm") — mirrors the FR10 `"live"`/`"unavailable"` precedent: explicit about what's known and unknown, never inventing precision the data doesn't support.
+- Explicit unavailable/not-applicable case: routes with no Ciclovía exposure show no note at all, rather than an empty or null field.
+- **Lifecycle (decided 2026-08-17, closing an open gap this amendment left when first written):** `ciclovia_affected` is **derived, not manually set** — recomputed by `gtfs_refresh.py` on every sync from a small, version-controlled corridor/service_tier rule (e.g. a maintained list of route codes or corridors known to cross Ciclovía streets), not edited directly on `Route` rows. This is a deliberate choice over a manually-maintained override: a manual flag would either get silently wiped by every full-replace-style refresh (nobody re-enters it) or silently go stale if refresh logic special-cased preserving it (nobody notices when the underlying corridor list changes). A rule recomputed fresh each sync can't drift out of sync with itself — it's only ever as current as the maintained rule list, which is a known, visible maintenance surface (a file in the repo) rather than a hidden one (data silently surviving or not surviving refreshes).
+
+**4. UUID primary keys across all models.**
+Decided 2026-08-17: `BusStop`, `Route`, `RouteStations`, and `RouteSchedule` all get an explicit `id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)`, replacing Django's default auto-increment integer PK. Raised initially as an enumeration-hardening suggestion and, on its own, not a strong fit for this project — there's no auth and no sensitive data (NFR4), so sequential IDs alone aren't a real exposure. The decision stands on different grounds: URL patterns are already being reworked in this same amendment (`bus_station_detail` → `bus_stop_detail`, `bus-stations/` → `bus-stops/`, per the ripple note below) — this is the point in the project's life where public identifiers can change cheaply, and the point where they get harder to change is once real links have been shared (FR17–18). Choosing opaque, stable-at-creation identifiers now avoids a second URL-scheme break later. Ripple: URL patterns move from `<int:pk>` to `<uuid:pk>` throughout `routes/urls.py`/`routes/api_urls.py`; `gtfs_route_id`/`gtfs_stop_id` (item 1/2 above) remain the *refresh-matching* key, distinct in purpose from the UUID *public-identity* key — a refresh upserts by `gtfs_route_id` and the row keeps its original UUID, so shared links keep resolving across syncs.
+
+**Verification still needed before implementation** (not blocking this amendment, but blocking the stories that implement `service_tier`/`schedule`/the natural-key fields): pull an actual GTFS `routes.txt`/`stops.txt`/`calendar.txt`/`calendar_dates.txt` from the `2025-10-28` static feed to confirm `service_tier` sourcing, the `gtfs_route_id`/`gtfs_stop_id` mapping against existing `code`/`cenefa`/`transmilenio_id`, and the full day-type value set plus calendar-exception precedence. The live JSON API sampled above is a useful cross-check but is not itself the system of record — GTFS remains it, per Core Architectural Decisions.
+
+#### Terminology & Sources
+
+Spanish-language TM/SITP domain terms used above and elsewhere in this document, for readers (human or AI agent) implementing against them without independently re-deriving each one:
+
+| Term | Meaning | Source |
+|---|---|---|
+| **SITP** | Sistema Integrado de Transporte Público — Bogotá's integrated system name; TransMilenio (trunk/BRT) is one component of it, zonal buses are another | [transmilenio.gov.co — Servicios del SITP](https://www.transmilenio.gov.co/publicaciones/146270/servicios_del_sitp/) |
+| **Troncal** | Trunk/BRT service — articulated buses on exclusive busway corridors connecting stations/portals; also the name of the corridor grouping itself (e.g. "Calle 26") | [transmilenio.gov.co — tipos de rutas](https://bogota.gov.co/mi-ciudad/movilidad/tipos-de-buses-de-transmilenio-bogota-troncal-zonal-y-mas-datos); live API `troncal` object, sampled 2026-08-17 |
+| **Zonal** | Non-trunk service operating on regular streets (covers Alimentador/Urbano/Complementario/Especial); `"tipo": "TransMiZonal"` in the live route API | Live API sample, 2026-08-17 |
+| **Alimentador** (feeder) | Connects neighborhoods to trunk portals/stations under one integrated fare | [transmilenio.gov.co — ABCÉ del servicio de alimentación](https://www.transmilenio.gov.co/comunicaciones/noticias-de-transmilenio/comunicados-oficiales/abce-del-servicio-de-alimentacion-de-transmilenio) |
+| **Urbano** | Zonal service crossing multiple zones on main roads, identified by blue buses | bogota.gov.co, as above |
+| **Complementario** | Zonal service operating within a single zone only (contrast with Urbano) | bogota.gov.co, as above |
+| **Especial** | Special-purpose zonal service | bogota.gov.co, as above |
+| **Estación** | Trunk station — the larger platform infrastructure (149 in the official dataset), with attributes like platform count and bike-parking capacity that don't apply to zonal stops | `data/Estaciones_Troncales_de_TRANSMILENIO.geojson` (official, via ArcGIS Hub) |
+| **Paradero** | Zonal stop — a simple curbside stop (7,618 in the official dataset), identified by `cenefa` | `data/Paraderos_Zonales_del_SITP.geojson` (official, via ArcGIS Hub) |
+| **Cenefa** | SITP's official alphanumeric stop code for a paradero (e.g. `"001A00"`) — the natural key `load_bus_stations.py` already matches on | Same GeoJSON source |
+| **Ciclovía** | Bogotá's weekly car-free-streets program (Sundays/holidays, 7am–2pm) that forces zonal/dual route diversions; separate from one-off event diversions (marches, marathons) | [bogota.gov.co — horarios y rutas de la Ciclovía](https://bogota.gov.co/mi-ciudad/cultura-recreacion-y-deporte/horarios-y-rutas-de-la-ciclovia-bogotana-los-domingos-y-festivos); news coverage, 2026 |
+
+#### Proposed Data Models (concrete)
+
+Field-level sketch for the implementation story — names/types illustrative (Django/GeoDjango conventions per Implementation Patterns), not final code:
+
+```python
+import uuid
+
+
+class BusStop(models.Model):  # renamed from BusStation
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    STOP_TYPE_TRUNK = 'estacion_troncal'
+    STOP_TYPE_ZONAL = 'paradero_zonal'
+    STOP_TYPES = (
+        (STOP_TYPE_TRUNK, 'Estación troncal'),
+        (STOP_TYPE_ZONAL, 'Paradero zonal'),
+    )
+
+    name = models.CharField(max_length=150)
+    stop_type = models.CharField(max_length=20, choices=STOP_TYPES)
+    gtfs_stop_id = models.CharField(max_length=50, unique=True)  # stops.txt stop_id — refresh natural key
+    location = models.PointField()                    # replaces latitude/longitude DecimalFields
+    address = models.CharField(max_length=255, default='')
+    link = models.URLField(default='')
+
+    # Zonal-only (paradero) — null when stop_type=estacion_troncal
+    cenefa = models.CharField(max_length=50, null=True, unique=True)
+    zona_sitp = models.CharField(max_length=10, blank=True)
+    audio = models.CharField(max_length=255, blank=True)
+
+    # Trunk-only (estación) — null when stop_type=paradero_zonal
+    transmilenio_id = models.IntegerField(null=True, unique=True)
+    numero_vagones = models.PositiveSmallIntegerField(null=True)
+    numero_accesos = models.PositiveSmallIntegerField(null=True)
+    biciestacion = models.BooleanField(null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            # zonal rows carry a cenefa and no trunk-only fields; trunk rows carry
+            # transmilenio_id and no zonal-only fields — gtfs_refresh.py must reject
+            # (not partially load) any row that violates this per stop_type
+            models.CheckConstraint(
+                check=(
+                    models.Q(stop_type=STOP_TYPE_ZONAL, cenefa__isnull=False, transmilenio_id__isnull=True)
+                    | models.Q(stop_type=STOP_TYPE_TRUNK, transmilenio_id__isnull=False, cenefa__isnull=True)
+                ),
+                name='busstop_type_specific_fields_consistent',
+            ),
+        ]
+
+
+class Route(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ROUTE_MODE_TRUNK = 'transmilenio'
+    ROUTE_MODE_ZONAL = 'transmizonal'
+    ROUTE_MODES = (
+        (ROUTE_MODE_TRUNK, 'TransMilenio'),
+        (ROUTE_MODE_ZONAL, 'TransMiZonal'),
+        # future: 'metro', 'regiotram' — deliberately not added yet, see amendment above
+    )
+    SERVICE_TIER_TRUNK = 'troncal'
+    SERVICE_TIER_FEEDER = 'alimentador'
+    SERVICE_TIER_URBAN = 'urbano'
+    SERVICE_TIER_COMPLEMENTARY = 'complementario'
+    SERVICE_TIER_SPECIAL = 'especial'
+    SERVICE_TIERS = (
+        (SERVICE_TIER_TRUNK, 'Troncal'),
+        (SERVICE_TIER_FEEDER, 'Alimentador'),
+        (SERVICE_TIER_URBAN, 'Urbano'),
+        (SERVICE_TIER_COMPLEMENTARY, 'Complementario'),
+        (SERVICE_TIER_SPECIAL, 'Especial'),
+    )  # ⚠️ pending verification against actual GTFS routes.txt — see "Verification still needed" above
+
+    name = models.CharField(max_length=255)
+    code = models.CharField(max_length=50)
+    gtfs_route_id = models.CharField(max_length=50, unique=True)  # routes.txt route_id — refresh natural key
+    route_mode = models.CharField(max_length=20, choices=ROUTE_MODES)
+    service_tier = models.CharField(max_length=20, choices=SERVICE_TIERS)
+    color = models.CharField(max_length=50, default='')
+    path = models.MultiLineStringField(null=True)      # GTFS shape geometry
+    is_active = models.BooleanField(default=True)       # survives route restructuring; keeps FR17–18 links resolvable
+    ciclovia_affected = models.BooleanField(default=False)  # advisory only — see amendment above, no diversion geometry
+
+    map_link = models.URLField(default='')
+    details_link = models.URLField(default='')
+    publication_date = models.DateTimeField(null=True)
+    last_update = models.DateTimeField(null=True)        # maps to upstream `informacion.fechaActualizacion`
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['code']
+        unique_together = ('code', 'name')
+
+
+class RouteSchedule(models.Model):                       # NEW — replaces Route.schedule free-text CharField
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    DAY_TYPE_WEEKDAY_SATURDAY = 'L-S'
+    DAY_TYPE_SUNDAY_HOLIDAY = 'D-F'
+    DAY_TYPES = (
+        (DAY_TYPE_WEEKDAY_SATURDAY, 'Lunes a sábado'),
+        (DAY_TYPE_SUNDAY_HOLIDAY, 'Domingos y festivos'),
+        # ⚠️ PROVISIONAL, not frozen — only these two observed in live-API samples.
+        # Do not assume this equals GTFS calendar.txt/calendar_dates.txt's own
+        # service-day model; see "Verification still needed" above before treating
+        # this as final. Ingestion must reject an unrecognized day-type value
+        # rather than guess the nearest bucket.
+    )
+
+    route = models.ForeignKey('routes.Route', related_name='schedules', on_delete=models.CASCADE)
+    day_type = models.CharField(max_length=10, choices=DAY_TYPES)
+    # DurationField (seconds-since-midnight), not TimeField: GTFS stop_times.txt/
+    # frequencies.txt times can exceed 24:00:00 for a trip that starts before and
+    # continues past midnight of the same service day (e.g. 25:30:00) — Python's
+    # datetime.time (what TimeField stores) cannot represent that, so TimeField
+    # would silently corrupt or reject valid late-night schedules. Sourced from
+    # stop_times.txt/frequencies.txt; calendar.txt/calendar_dates.txt determine
+    # which dates a service_id applies to, not these time values.
+    start_time = models.DurationField()
+    end_time = models.DurationField()
+
+
+# RouteStations: otherwise unchanged in shape, FK target renamed BusStation → BusStop
+class RouteStations(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ...  # direction, position, route FK, bus_stop FK (renamed from bus_station)
+```
+
+`RouteStations.bus_station` FK renames to `bus_stop` for consistency — a ripple from the `BusStop` rename that touches `routes/api_urls.py` (`bus-stations/` → likely `bus-stops/`), `routes/urls.py` (`bus_station_detail` → `bus_stop_detail`), and `routes/templates/routes/busstation_*.html` → `bus_stop_*.html`. Not attempting a full URL/template rename plan here — flagged so the implementing story scopes it rather than discovering it mid-implementation.
 
 ### Authentication & Security
 
@@ -168,15 +353,15 @@ Full-stack web (server-rendered MPA) — brownfield.
 ### Naming Patterns
 
 **Database Naming:**
-- Django default conventions throughout — no manual overrides. Table names auto-derive as `<app_label>_<modelname>` lowercase (e.g. `routes_route`, `routes_busstation`), matching the existing schema.
-- Columns: snake_case, Django default (e.g. `route_type`, `transmilenio_id`).
-- Foreign keys: Django default `<field_name>_id` (e.g. `route_id`, `bus_station_id`), as already used in `RouteStations`.
-- New PostGIS geometry fields: name by what they represent, not by type — `location` (`PointField`) on `BusStation`, `path` (`LineStringField` or `MultiLineStringField`) on `Route`, not `geom` or `the_geog`.
+- Django default conventions throughout — no manual overrides. Table names auto-derive as `<app_label>_<modelname>` lowercase (e.g. `routes_route`, `routes_busstop`), matching the existing schema convention (superseded name: `routes_busstation`, pre-2026-08-17 amendment).
+- Columns: snake_case, Django default (e.g. `route_mode`, `service_tier`, `transmilenio_id`) — `route_type` is superseded, see Data Model Amendment (2026-08-17).
+- Foreign keys: Django default `<field_name>_id` (e.g. `route_id`, `bus_stop_id`), as already used in `RouteStations` (renamed from `bus_station_id`) — values are UUIDs, not sequential integers, per the UUID primary key decision (item 4, Data Model Amendment, 2026-08-17).
+- New PostGIS geometry fields: name by what they represent, not by type — `location` (`PointField`) on `BusStop`, `path` (`MultiLineStringField`) on `Route`, not `geom` or `the_geog`.
 - Spatial indexes: let GeoDjango auto-create the GiST index (default behavior for geometry fields) — no manual index naming needed.
 
 **API Naming:**
 - URL segments: kebab-case for multi-word paths, plural nouns for collections — continues the existing `bus-stations/` precedent. New endpoints: `stops/nearby/`, `routes/<id>/live-positions/`.
-- Django URL pattern `name=`: snake_case (`bus_station_detail`, `route_buses`), matching existing `urls.py`/`api_urls.py`.
+- Django URL pattern `name=`: snake_case (`bus_stop_detail`, renamed from `bus_station_detail`; `route_buses`), matching existing `urls.py`/`api_urls.py`.
 - Query parameters: snake_case (`lat`, `lng`, `radius_m`), not camelCase — matches Python/Django convention throughout the stack.
 - DRF view naming: `<Model><Action>View` for template views (existing pattern: `RouteDetailView`), `<Model><Action>View(generics.XxxAPIView)` for DRF endpoints — migrate existing ad-hoc `RouteBusesAPIView`/`RouteStationsAPIView` (currently `DetailView` subclasses with a manual `get()`) to real DRF generic views (`RetrieveAPIView`/`ListAPIView`) rather than ViewSets+routers, since each endpoint is already explicitly declared in `api_urls.py` — no reason to add router indirection for a small, fixed endpoint set.
 
@@ -245,7 +430,7 @@ Full-stack web (server-rendered MPA) — brownfield.
 
 **Good Examples:**
 - `GET /api/stops/nearby/?lat=4.65&lng=-74.05&radius_m=400` → `FeatureCollection` of stop `Feature`s, each with `properties.routes` listing route codes serving that stop.
-- `GET /api/routes/12/live-positions/` → `{"buses": [{"id": "...", "status": "live", "location": {...}}, {"id": "...", "status": "unavailable"}]}`.
+- `GET /api/routes/3fa85f64-5717-4562-b3fc-2c963f66afa6/live-positions/` (UUID `pk`, per Data Model Amendment item 4) → `{"buses": [{"id": "...", "status": "live", "location": {...}}, {"id": "...", "status": "unavailable"}]}`.
 
 **Anti-Patterns:**
 - Returning HTTP 503 for a routine "transmiapp is currently down" state (that's an expected, designed-for condition per NFR3/FR10, not a server error).
@@ -287,7 +472,7 @@ public_transport/
 │   ├── __init__.py
 │   ├── apps.py
 │   ├── admin.py
-│   ├── models.py                  # UPDATED — BusStation.location (PointField), Route.path (geometry), replaces lat/lng DecimalFields
+│   ├── models.py                  # UPDATED — BusStation renamed BusStop (+ stop_type), Route.route_type split into route_mode/service_tier, RouteSchedule (new), location/path as PostGIS geometry — see Data Model Amendment (2026-08-17)
 │   ├── serializers.py             # NEW — DRF serializers (GeoJSON for stops/routes, plain for lists)
 │   ├── views.py                   # UPDATED — existing template views kept; ad-hoc APIViews migrated to DRF generics
 │   ├── urls.py                    # existing template-view URLs (home, route_detail, bus-stations/)
@@ -298,10 +483,10 @@ public_transport/
 │   │   └── gtfs_refresh.py         # FR11: parses official GTFS feed, full-replace-in-transaction
 │   ├── management/
 │   │   └── commands/
-│   │       ├── load_bus_stations.py  # existing
+│   │       ├── load_bus_stations.py  # UPDATED — needs stop_type-aware loading for both estación (trunk) and paradero (zonal) sources, not zonal-only as today
 │   │       └── refresh_gtfs.py       # NEW — manually-invoked management command (FR11)
-│   ├── migrations/                # existing 0001–0007 + new PostGIS migration(s)
-│   ├── templates/routes/          # existing: home, route_detail, busstation_list, busstation_detail
+│   ├── migrations/                # 0001–0007 DELETED (no production data to preserve); fresh 0001_initial.py generated against the amended models
+│   ├── templates/routes/          # existing: home, route_detail, busstation_list, busstation_detail — RENAMED to bus_stop_list/bus_stop_detail alongside the model rename
 │   └── tests/                     # NEW — no tests exist for this app today
 │       ├── __init__.py
 │       ├── test_nearby.py
@@ -348,7 +533,7 @@ public_transport/
 - `transmiapp/services.py` is the **only** module allowed to import `requests` and call the transmiapp host — enforced as a code-review rule (see Implementation Patterns anti-pattern), not (yet) a lint rule.
 
 **Data Boundaries:**
-- `routes` app owns `Route`, `RouteStations`, `BusStation` models and their PostGIS geometry — the single source of truth for static data.
+- `routes` app owns `Route`, `RouteSchedule`, `RouteStations`, `BusStop` (renamed from `BusStation`) models and their PostGIS geometry — the single source of truth for static data.
 - `transmiapp` app owns no persistent models — live positions are cache-only (short TTL), never written to the database, consistent with treating live data as inherently transient/unreliable (NFR10).
 - Django's local-memory cache is process-local — not shared across multiple app instances if the deployment ever scales beyond one process (documented as a deferred concern in Core Architectural Decisions).
 
