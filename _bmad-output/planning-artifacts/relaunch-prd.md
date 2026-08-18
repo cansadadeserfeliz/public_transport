@@ -10,7 +10,11 @@ classification:
   complexity: medium
   complexityNote: "Elevated from low — driven by technical complexity of the live bus-position dependency and recurring GTFS refresh pipeline, and legal/ToS exposure of the unofficial live-tracking API, not by domain regulation."
   projectContext: brownfield
-stepsCompleted: [step-01-init, step-02-discovery, step-02b-vision, step-02c-executive-summary, step-03-success, step-04-journeys, step-05-domain, step-06-innovation, step-07-project-type, step-08-scoping, step-09-functional, step-10-nonfunctional, step-11-polish, step-12-complete]
+stepsCompleted: [step-01-init, step-02-discovery, step-02b-vision, step-02c-executive-summary, step-03-success, step-04-journeys, step-05-domain, step-06-innovation, step-07-project-type, step-08-scoping, step-09-functional, step-10-nonfunctional, step-11-polish, step-12-complete, step-e-01-discovery, step-e-02-review, step-e-03-edit]
+lastEdited: '2026-08-17'
+editHistory:
+  - date: '2026-08-17'
+    changes: 'Reconciled FR11 and NFR8 with the manual (non-scheduled) GTFS refresh trigger decided in relaunch-architecture.md — closes an outstanding action item from that architecture pass.'
 ---
 
 # Product Requirements Document - public_transport
@@ -217,7 +221,7 @@ Explicitly not a priority — growth is via shared links and word of mouth, not 
 
 ### Data Currency (system capability)
 
-- FR11: System can refresh static route/stop/schedule data from the official GTFS source on a recurring schedule without manual intervention.
+- FR11: System can refresh static route/stop/schedule data from the official GTFS source, triggered by the maintainer, so riders never see data older than the last refresh. **(Amended 2026-08-17: refresh is maintainer-triggered, not an automatic recurring schedule — see `relaunch-architecture.md` § Core Architectural Decisions › Data Architecture, "GTFS refresh trigger model," a deliberate solo-maintainer-operability decision.)**
 - FR12: System can alert the maintainer when the GTFS refresh pipeline fails.
 - FR13: System can alert the maintainer when the live-tracking source becomes unavailable or its response format changes.
 
@@ -254,7 +258,7 @@ Explicitly not a priority — growth is via shared links and word of mouth, not 
 
 ### Reliability & Monitoring
 
-- GTFS refresh pipeline failures trigger a maintainer alert within 24 hours of a missed or failed scheduled run (ties to FR12).
+- GTFS refresh pipeline failures are surfaced to the maintainer immediately (via Sentry) during a manually-triggered run — ties to FR12. **(Amended 2026-08-17: no scheduled run exists to be "missed"; the maintainer already knows a sync happened because they triggered it, so failure detection is immediate rather than a 24-hour window — see `relaunch-architecture.md` § Infrastructure & Deployment.)**
 - Live-tracking source failures or response-format changes are detected and alert the maintainer within the same day, not discovered via silent user complaints (ties to FR13, Journey 3).
 - Static route/stop data availability is fully decoupled from live-tracking availability — a live-tracking outage must never take down route/stop browsing.
 

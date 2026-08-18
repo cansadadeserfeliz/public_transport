@@ -12,6 +12,9 @@ date: '2026-08-17'
 lastStep: 14
 status: 'complete'
 completedAt: '2026-08-17'
+editHistory:
+  - date: '2026-08-17'
+    changes: 'Added Route Directory component to close the FR5/FR6 (browse/search) coverage gap found by the implementation readiness assessment — kept in MVP scope rather than deferred, as a secondary page that does not alter the no-search-on-homepage landing principle.'
 ---
 
 # UX Design Specification public_transport
@@ -51,6 +54,8 @@ Primary: everyday Bogotá TransMilenio/SITP riders navigating an unfamiliar rout
 ### Defining Experience
 
 The core loop is landing directly on the nearby-routes/stops comparison map — no search, no login — and being able to (1) see every route passing nearby and every nearby bus station at a glance, (2) drill into a specific route or stop for full detail, and (3) move the center point (not just live GPS) to explore a different location entirely. All three are treated as equally critical, not a primary flow plus edge cases.
+
+**Scope note (2026-08-17):** "no search" describes the *landing experience* specifically — the homepage never asks a rider to search before showing them something useful. It does not mean the app has no search anywhere. See Component Strategy's Route Directory (added 2026-08-17) for how PRD FR5/FR6 (browse the full route list, search by name/number) are satisfied without compromising this landing principle.
 
 ### Platform Strategy
 
@@ -394,10 +399,20 @@ None — the chosen design system (Step 6) is a lightweight custom system with n
 **Accessibility:** Plain text, standard contrast and font-size rules apply; no special ARIA needed since it's static content.
 **Content Guidelines:** Short, honest, community-toned — reinforces the "independent effort, not corporate/government" emotional goal, not legal boilerplate.
 
+#### Route Directory (added 2026-08-17)
+
+**Purpose:** Satisfies FR5 (browse the full route list) and FR6 (search by name/number) — the one PRD requirement pair with no coverage anywhere else in this spec, surfaced by the 2026-08-17 implementation readiness assessment. **Decision:** keep FR5/FR6 in MVP scope (not deferred to Phase 2) and satisfy them with a small, secondary page — not by adding a search box to the homepage. The homepage's "land on the comparison, not a search box" principle (Core Experience) is about the *landing* experience specifically and stays exactly as designed; this component is deliberately never the first thing a rider sees. Reasoning for keeping rather than deferring: the underlying per-route detail page already exists and is shareable (FR17–18) — what's missing is purely *discovery* for a rider who knows a route code but isn't near a stop right now (e.g., checking a route from home, out of curiosity, or because a friend mentioned a code with no link). That's a real, if secondary, use case the nearby-first flows don't cover, and the fix is cheap enough (one more server-rendered list page, reusing existing components) that deferring it would be avoiding a small job, not respecting real scope pressure.
+**Content:** A plain list of all active (`is_active=True`) routes, each row rendered with the *same* Nearby Route Row treatment (route chip, system + corridor color, name) minus the ETA/distance columns, which have no meaning without a location context. Grouped or filterable by `route_mode`/`service_tier` (TransMilenio trunk vs. TransMiZonal), not flattened into one undifferentiated list of ~550 rows.
+**Actions:** A plain text filter input (server-rendered, `?q=` query param — matches an existing shareable-URL pattern already used elsewhere, not a new client-side search index) narrows the list by name or code as the rider types; each row taps through to that route's existing detail page/panel, reusing the Route Detail Panel component as-is.
+**States:** No live/unavailable states here — this is static route metadata, not a live comparison; empty-filter state ("no routes match") uses the same honest-empty-state pattern already established for the nearby view.
+**Variants:** None.
+**Accessibility:** Real `<input>` and `<a>`/`<button>` elements, filter works without JS (server-rendered on submit) as a progressive-enhancement baseline, consistent with every other component in this spec.
+**Content Guidelines:** Same plain-Spanish, no-jargon voice as the rest of the app; reached via a low-emphasis link (e.g., "Ver todas las rutas") from the Trust Footer or a similar always-present but non-competing location — never a prominent homepage element, so it doesn't dilute "land on the comparison."
+
 ### Component Implementation Strategy
 
 - Every component pulls from the design tokens established in Visual Design Foundation (color tiers, spacing scale, radius scale) — no component hardcodes a one-off value.
-- Components stay small and few by design: four custom components cover both critical journeys end to end, consistent with the "solo, nights-and-weekends, MVP-sized" constraint that has shaped every prior decision.
+- Components stay small and few by design: five custom components (four original plus the Route Directory added 2026-08-17 to close the FR5/FR6 gap) cover both critical journeys end to end plus full-catalog browse/search, consistent with the "solo, nights-and-weekends, MVP-sized" constraint that has shaped every prior decision — the Route Directory reuses the Nearby Route Row and Route Detail Panel rather than inventing new visual language, keeping the actual net-new surface small.
 - Accessibility rules (no color-alone states, real tap targets, plain-language content) are enforced per-component here rather than left as a general aspiration.
 
 ### Implementation Roadmap
@@ -411,6 +426,7 @@ None — the chosen design system (Step 6) is a lightweight custom system with n
 
 **Phase 3 — Enhancement Components:**
 - Trust Footer — structurally required by the PRD but not on the critical interaction path; can land alongside the base template work rather than blocking the comparison view.
+- Route Directory — satisfies FR5/FR6 but blocks neither Camila's nor Andrés's journey; lowest priority of the five components, but still MVP (not Phase-2-deferred), since it's cheap and closes a named PRD requirement.
 
 ## UX Consistency Patterns
 
@@ -433,11 +449,11 @@ All feedback is text-first; color reinforces but never carries the meaning alone
 
 ### Form Patterns
 
-Not applicable — the app has no forms. No login, no search input (Core Experience: "land on the comparison, not a search box"), no settings to submit. The one input-like interaction, manually placing a location pin, is direct map manipulation, not a form field.
+No login, no settings to submit, and the homepage itself has no search input (Core Experience: "land on the comparison, not a search box"). The one input-like interaction on the core flow, manually placing a location pin, is direct map manipulation, not a form field. **Updated 2026-08-17:** the Route Directory (Component Strategy) does introduce one real form field — a plain text filter, server-rendered on submit — but it lives on its own secondary page, not the homepage, so this doesn't change the core-flow statement above.
 
 ### Navigation Patterns
 
-- **Tap-to-detail is the only navigation model** — established in Core Experience and Component Strategy, used identically for routes and stops.
+- **Tap-to-detail is the navigation model for the core comparison flow** — established in Core Experience and Component Strategy, used identically for routes and stops. The Route Directory (added 2026-08-17) adds one secondary entry point (filter-then-tap) for riders who already know what they're looking for; it still ends at the same tap-to-detail destination, so this isn't a second navigation model, just a second on-ramp to the same one.
 - **Panel and page are the same content, two renderings.** Because per-route/per-stop links must be shareable and directly loadable (PRD FR17–18), each route/stop detail has its own real URL, server-rendered per the MPA architecture. On the nearby view, tapping opens that same content as an in-page panel (fast, no reload); a cold visit to the shared URL renders the identical content as a full page. This is a progressive-enhancement detail, not two different designs to maintain.
 - **No back-button surprises:** opening a panel updates the URL (so sharing/refresh/back all resolve to the same state), consistent with "server-rendered, shareable... URLs" from the PRD's Web App Requirements.
 
@@ -469,7 +485,7 @@ A single breakpoint at **768px**, switching the nearby-comparison layout from st
 - 4.5:1 minimum contrast, including corridor colors against their marker backgrounds.
 - No state conveyed by color alone (live/unavailable shape difference, direction arrow + tint, text-based feedback labels).
 - Real tap targets on interactive rows (not just the visual chip), sized for touch.
-- Keyboard-operable core navigation (route search... N/A — keyboard-operable route/stop selection and panel dismissal).
+- Keyboard-operable core navigation — route/stop selection and panel dismissal on the nearby view; the Route Directory's filter input and result links (added 2026-08-17) are standard keyboard-operable form/link elements, no special handling needed.
 - Readable default font sizes, no reliance on pinch-zoom.
 
 ### Testing Strategy
