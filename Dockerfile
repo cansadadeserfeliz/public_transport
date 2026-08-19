@@ -15,12 +15,19 @@ RUN apt-get update \
         # Debian-based images
     && rm -rf /var/lib/apt/lists/*
 
+# UID/GID 1000 matches the typical host dev user, avoiding a
+# permission mismatch against the docker-compose.yml bind mount
+RUN useradd --create-home --uid 1000 appuser
+
 WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+RUN chown -R appuser:appuser /app
+
+USER appuser
 
 EXPOSE 8000
 
