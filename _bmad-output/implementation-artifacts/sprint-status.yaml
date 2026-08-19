@@ -1,5 +1,5 @@
 # generated: 2026-08-18T19:58:16-05:00
-# last_updated: 2026-08-18T19:58:16-05:00
+# last_updated: 2026-08-19T03:15:00-05:00
 # project: public_transport
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,15 +35,15 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-08-18T19:58:16-05:00
-last_updated: 2026-08-18T19:58:16-05:00
+last_updated: 2026-08-19T03:15:00-05:00
 project: public_transport
 project_key: NOKEY
 tracking_system: file-system
 story_location: _bmad-output/implementation-artifacts
 
 development_status:
-  epic-1: backlog
-  1-1-foundation-django-5-2-postgresql-postgis-upgrade: backlog
+  epic-1: in-progress
+  1-1-foundation-django-5-2-postgresql-postgis-upgrade: done
   1-2-gtfs-ready-data-model: backlog
   1-3-manual-gtfs-refresh-pipeline: backlog
   1-4-gtfs-refresh-failure-alerting: backlog
@@ -73,3 +73,8 @@ development_status:
   5-3-keyboard-operable-core-navigation: backlog
   5-4-pre-launch-manual-accessibility-testing-pass: backlog
   epic-5-retrospective: optional
+  # epic-6 is maintainer-initiated tooling/dependency debt, not FR-driven —
+  # not part of relaunch-epics.md's Epic List. Pull into a sprint whenever
+  # convenient; not required for MVP sequencing.
+  epic-6: backlog
+  6-1-dependency-modernization-and-ruff-migration: ready-for-dev

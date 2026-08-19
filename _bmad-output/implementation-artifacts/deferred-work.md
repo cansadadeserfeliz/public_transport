@@ -1,0 +1,8 @@
+# Deferred Work
+
+## Deferred from: code review of story-1-1-foundation-django-5-2-postgresql-postgis-upgrade (2026-08-19)
+
+- No automatic `migrate` step before `runserver` in `docker-compose.yml`'s `app` command — matches what Story 1.1's Task 1.2 explicitly specified (`runserver`-only for hot reload); worth revisiting once Story 1.8 writes the setup docs.
+- ~~No non-root `USER` directive in the Dockerfile~~ — **resolved 2026-08-19**, see story 1.1's Review Findings for detail.
+- No `HEALTHCHECK` on the `app` compose service (the `db` service has one) — same reasoning as above; revisit alongside a future deploy/production-hardening story.
+- Gunicorn's `CMD` has no explicit `--timeout` — the 30s default is reasonable for current scope; revisit if real workloads surface timeout issues.

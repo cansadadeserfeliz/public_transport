@@ -1,23 +1,40 @@
 # :oncoming_bus: Public transport
 
-## :busstop: Installation
+## :busstop: Requirements
 
-    $ pip install -r requirements.txt
-    $ pre-commit install
-    $ python manage.py migrate
+- Docker + Docker Compose
 
-## :bus: Run the spider
+## :gear: Setup
 
-    scrapy crawl sitp
+1. Create a `.env` file in the project root with at least:
 
-Load additional data for bus stations from geojson file:
+       POSTGRES_DB=public_transport
+       POSTGRES_USER=public_transport
+       POSTGRES_PASSWORD=<pick-a-local-password>
+       POSTGRES_HOST=db
+       POSTGRES_PORT=5432
 
-    python manage.py load_bus_stations
+2. Build and start the stack:
 
-## :roller_coaster: Run server
+       docker compose up -d
 
-    python manage.py runserver
+3. Apply migrations (run once, and again after pulling changes that add new ones):
 
----
+       docker compose run --rm app python manage.py migrate
 
-*Fuente: TRANSMILENIO S.A: www.transmilenio.gov.co*
+The app is now running at http://localhost:8000, with a PostGIS-backed Postgres database (`postgis/postgis:17-3.5`) running alongside it.
+
+**Current state:** the `routes` app has no migrations yet — its data model is being reworked (`BusStop`, `Route`, `Corridor`, etc.) and a fresh initial migration lands with that change. Until then, pages that query route/stop data (including the homepage) will 500 with `relation "routes_route" does not exist` — that's expected, not a setup mistake. Django's own admin, auth, and session tables are fully migrated and usable.
+
+## :white_check_mark: Running tests
+
+    docker compose run --rm app python -m pytest
+
+## :art: Linting / formatting
+
+    docker compose run --rm app black .
+    docker compose run --rm app flake8
+
+## :warning: Legacy data pipeline
+
+The old Scrapy-based crawler (`scrapy crawl sitp`, `python manage.py load_bus_stations`) predates the move to PostgreSQL/PostGIS and hasn't been re-verified against the new database. It's still in the repo but scheduled for retirement once the GTFS-based refresh pipeline lands in a future story — don't rely on it for now.
