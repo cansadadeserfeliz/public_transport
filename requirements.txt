@@ -1,4 +1,7 @@
-Django==4.2.4
+Django==5.2.16
+psycopg[binary]==3.3.4
+whitenoise==6.12.0
+gunicorn==26.0.0
 
 Scrapy==2.10.1
 scrapy-djangoitem==1.1.1
@@ -11,6 +14,7 @@ python-telegram-bot==20.4
 pytest==7.0.1
 pytest-cov==3.0.0
 pytest-sugar==0.9.4
+pytest-django==4.14.0
 
 black==23.7.0
 flake8==6.1.0
