@@ -6,3 +6,8 @@
 - ~~No non-root `USER` directive in the Dockerfile~~ — **resolved 2026-08-19**, see story 1.1's Review Findings for detail.
 - No `HEALTHCHECK` on the `app` compose service (the `db` service has one) — same reasoning as above; revisit alongside a future deploy/production-hardening story.
 - Gunicorn's `CMD` has no explicit `--timeout` — the 30s default is reasonable for current scope; revisit if real workloads surface timeout issues.
+
+## Deferred from: code review of 6-1-dependency-modernization-and-ruff-migration (2026-08-19)
+
+- No dev/prod split for `requirements.txt` — `ruff`, `pytest`, `pytest-cov`, `pytest-sugar`, `factory-boy` all live in the same flat file as `gunicorn`/`requests`/`Django`. Pre-existing pattern, not introduced by this story; worth a `requirements-dev.txt` split if the dependency list keeps growing.
+- No lockfile or hash-pinning (`pip-compile`/`requirements.lock`) — the project has always used loose `==` pins with no transitive-dependency locking. Legitimate future supply-chain hardening, out of scope for a dependency-version-bump story.

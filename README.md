@@ -32,8 +32,8 @@ The app is now running at http://localhost:8000, with a PostGIS-backed Postgres 
 
 ## :art: Linting / formatting
 
-    docker compose run --rm app black .
-    docker compose run --rm app flake8
+    docker compose run --rm app ruff check .
+    docker compose run --rm app ruff format .
 
 ## :warning: Legacy data pipeline
 

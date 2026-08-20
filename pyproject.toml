@@ -1,17 +1,42 @@
-[tool.black]
+[tool.ruff]
 line-length = 79
-skip-string-normalization = true
-exclude = '''
-/(
-    \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-  | migrations
-)/
-'''
+target-version = "py311"
+exclude = [
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".tox",
+    ".venv",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "migrations",
+    # Not part of black's original exclusion — needed because ruff format,
+    # unlike black, also reformats fenced ```python code blocks inside
+    # Markdown files. relaunch-architecture.md has Django model snippets as
+    # documentation, not code meant to be lint/format-enforced.
+    "_bmad-output",
+]
+
+[tool.ruff.format]
+quote-style = "preserve"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+# None of .flake8's old blanket ignores (E203, E266, E501, W503, F403, F401)
+# are carried forward — each was checked against `ruff check .` with nothing
+# ignored, run against this codebase after the one-time `ruff format .` pass,
+# and none of them fire:
+# - E203/W503 (black-vs-pycodestyle whitespace/line-break disagreements) and
+#   E266 (## block comments): the constructs they'd flag simply don't occur
+#   in this codebase today. Re-add if/when real code triggers them.
+# - E501 (line-too-long): ruff's formatter (line-length above) already
+#   prevents this in practice; nothing currently exceeds it. Unlike the old
+#   blanket ignore, this means a future unsplittable long line (a long URL,
+#   a long string) WILL fail `ruff check`. Use an inline `# noqa: E501` on
+#   that line rather than reopening this ignore.
+# - F403 (star imports): zero `import *` anywhere in the repo.
+# - F401 (unused imports): the 4 real hits found during this story's rollout
+#   were genuine dead imports and were removed outright, not suppressed.
+ignore = []
