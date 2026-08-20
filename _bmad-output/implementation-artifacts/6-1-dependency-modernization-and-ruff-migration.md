@@ -1,6 +1,6 @@
 # Story 6.1: Dependency Modernization & Ruff Migration
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -142,10 +142,11 @@ This is independent of the pytest version bump — it's a pre-existing `pytest.i
 
 ### References
 
-- [Source: requirements.txt] — current pins verified directly: `requests==2.31.0`, `python-dotenv==1.0.0`, `python-telegram-bot==20.4`, `Scrapy==2.10.1`, `scrapy-djangoitem==1.1.1`, `black==23.7.0`, `flake8==6.1.0`, unpinned `pre-commit`, `pytest==7.0.1`, `pytest-cov==3.0.0`, `pytest-sugar==0.9.4`, `pytest-django==4.14.0`
-- [Source: pyproject.toml] — current `[tool.black]` config (line-length 79, `skip-string-normalization`, migrations excluded)
-- [Source: .flake8] — current ignore list (`E203, E266, E501, W503, F403, F401`) and migrations exclusion
-- [Source: .pre-commit-config.yaml] — current hook set being removed, not replaced
+- [Source: requirements.txt] — **pre-change baseline** (pins as they stood before this story, verified directly at drafting time): `requests==2.31.0`, `python-dotenv==1.0.0`, `python-telegram-bot==20.4`, `Scrapy==2.10.1`, `scrapy-djangoitem==1.1.1`, `black==23.7.0`, `flake8==6.1.0`, unpinned `pre-commit`, `pytest==7.0.1`, `pytest-cov==3.0.0`, `pytest-sugar==0.9.4`, `pytest-django==4.14.0`
+- [Source: pyproject.toml] — **pre-change baseline**: `[tool.black]` config (line-length 79, `skip-string-normalization`, migrations excluded)
+- [Source: .flake8] — **pre-change baseline** (file deleted by this story): ignore list (`E203, E266, E501, W503, F403, F401`) and migrations exclusion
+- [Source: .pre-commit-config.yaml] — **pre-change baseline** (file deleted by this story): hook set removed, not replaced
+- **Final state** (post-implementation, see Task checkboxes and File List above for full detail): `requirements.txt` now pins `requests==2.34.2`, `python-dotenv==1.2.3`, `pytest==9.1.1`, `pytest-cov==7.1.0`, `pytest-sugar==1.1.1`, `ruff==0.16.3`, `factory-boy==3.3.3`; `black`/`flake8`/`pre-commit` are gone. `pyproject.toml`'s `[tool.ruff]`/`[tool.ruff.lint]`/`[tool.ruff.format]` replaces `[tool.black]` (empty lint `ignore` list, `quote-style = "preserve"`, `_bmad-output` added to `exclude`). `.flake8` and `.pre-commit-config.yaml` no longer exist.
 - [Source: Dockerfile] — confirmed no `git` package installed; confirmed Docker-only workflow (no host venv setup)
 - [Source: README.md] — confirmed entire dev workflow is `docker compose run --rm app ...`; confirmed no `pre-commit install` step documented anywhere; "Linting / formatting" section is the one being updated to `ruff`
 - [Source: app/settings.py `INSTALLED_APPS`] — confirmed `telegram_bot` is not a registered app; `crawler` is
