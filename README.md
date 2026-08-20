@@ -32,8 +32,12 @@ The app is now running at http://localhost:8000, with a PostGIS-backed Postgres 
 
 ## :art: Linting / formatting
 
-    docker compose run --rm app black .
-    docker compose run --rm app flake8
+Lint and format are both handled by `ruff` (configured in `pyproject.toml`). There's no pre-commit hook or CI step running these automatically — run them yourself before pushing:
+
+    docker compose run --rm app ruff check .          # lint
+    docker compose run --rm app ruff check --fix .     # lint, auto-fixing what it can
+    docker compose run --rm app ruff format .          # format
+    docker compose run --rm app ruff format --check .  # format, check only (no changes written)
 
 ## :warning: Legacy data pipeline
 

@@ -5,17 +5,17 @@ gunicorn==26.0.0
 
 Scrapy==2.10.1
 scrapy-djangoitem==1.1.1
-requests==2.31.0
+requests==2.34.2
 
-python-dotenv==1.0.0
+python-dotenv==1.2.3
 
 python-telegram-bot==20.4
 
-pytest==7.0.1
-pytest-cov==3.0.0
-pytest-sugar==0.9.4
+pytest==9.1.1
+pytest-cov==7.1.0
+pytest-sugar==1.1.1
 pytest-django==4.14.0
 
-black==23.7.0
-flake8==6.1.0
-pre-commit
+factory-boy==3.3.3
+
+ruff==0.16.3

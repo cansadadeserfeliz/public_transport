@@ -1,4 +1,3 @@
-import re
 import urllib.parse
 from typing import Union
 import logging
