@@ -93,7 +93,7 @@ ITEM_PIPELINES = {
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-os.environ['DJANGO_SETTINGS_MODULE'] = 'app.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'app.settings.dev'
 
 # Starting with Django 1.8 you also have to explicitly set up Django
 # if using it outside a manage.py context (see Django Docs):

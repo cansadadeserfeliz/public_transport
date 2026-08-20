@@ -8,6 +8,7 @@
 
 1. Create a `.env` file in the project root with at least:
 
+       DJANGO_SECRET_KEY=<pick-a-random-secret>
        POSTGRES_DB=public_transport
        POSTGRES_USER=public_transport
        POSTGRES_PASSWORD=<pick-a-local-password>
@@ -16,7 +17,7 @@
 
 2. Build and start the stack:
 
-       docker compose up -d
+       docker compose up
 
 3. Apply migrations (run once, and again after pulling changes that add new ones):
 
