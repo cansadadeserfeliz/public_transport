@@ -3,9 +3,9 @@ from django.views.generic import DetailView
 from django.views.generic import ListView
 from django.http import JsonResponse
 
+from .models import BusStop
 from .models import Route
 from .models import RouteStations
-from .models import BusStation
 from transmiapp.services import get_buses_by_route_name
 
 
@@ -84,8 +84,8 @@ class RouteStationsAPIView(DetailView):
         for route_station in route_1:
             coordinates.append(
                 [
-                    route_station.bus_station.longitude,
-                    route_station.bus_station.latitude,
+                    route_station.bus_stop.location.x,
+                    route_station.bus_stop.location.y,
                 ]
             )
 
@@ -101,11 +101,13 @@ class RouteStationsAPIView(DetailView):
         )
 
 
-class BusStationsListView(ListView):
-    model = BusStation
+class BusStopsListView(ListView):
+    model = BusStop
     paginate_by = 100
+    template_name = 'routes/bus_stop_list.html'
 
 
-class BusStationsDetailView(DetailView):
-    model = BusStation
-    context_object_name = 'bus_station'
+class BusStopsDetailView(DetailView):
+    model = BusStop
+    context_object_name = 'bus_stop'
+    template_name = 'routes/bus_stop_detail.html'

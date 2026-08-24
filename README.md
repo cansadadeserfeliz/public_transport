@@ -43,3 +43,14 @@ Lint and format are both handled by `ruff` (configured in `pyproject.toml`). The
 ## :warning: Legacy data pipeline
 
 The old Scrapy-based crawler (`scrapy crawl sitp`, `python manage.py load_bus_stations`) predates the move to PostgreSQL/PostGIS and hasn't been re-verified against the new database. It's still in the repo but scheduled for retirement once the GTFS-based refresh pipeline lands in a future story — don't rely on it for now.
+
+## Data
+
+* Estaciones Troncales de TRANSMILENIO: https://datosabiertos.bogota.gov.co/en/dataset/estaciones-troncales-de-transmilenio1
+* Trazados Troncales de TRANSMILENIO: https://datosabiertos.bogota.gov.co/en/dataset/trazados-troncales-de-transmilenio
+* Rutas Zonales del SITP: https://datosabiertos.bogota.gov.co/en/dataset/ru
+  * https://datosabiertos.bogota.gov.co/dataset/servicios-rutas-troncales-y-zonales
+* Paraderos Zonales del SITP:
+  * https://datosabiertos-transmilenio.hub.arcgis.com/search?groupIds=69785fbaa2524cd88a47fe75c58ef48c
+  * https://datosabiertos.bogota.gov.co/dataset/paraderos-zonales-del-sitp (outdated)
+* Trazados cable: https://datosabiertos.bogota.gov.co/en/dataset/trazados-cable

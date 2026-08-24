@@ -7,12 +7,12 @@ app_name = 'routes'
 
 urlpatterns = [
     path(
-        'route/<int:pk>/buses/',
+        'route/<uuid:pk>/buses/',
         RouteBusesAPIView.as_view(),
         name='route_buses',
     ),
     path(
-        'route/<int:pk>/stations/',
+        'route/<uuid:pk>/stations/',
         RouteStationsAPIView.as_view(),
         name='route_stations',
     ),

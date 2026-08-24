@@ -1,0 +1,48 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Name</th>
+      <th scope="col">Type</th>
+      <th scope="col">cenefa</th>
+      <th scope="col">address</th>
+      <th scope="col">audio</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for bus_stop in busstop_list %}
+    <tr>
+      <th scope="row">{{ bus_stop.id }}</th>
+      <td>
+        <a href="{{ bus_stop.get_absolute_url }}">{{ bus_stop.name }}</a>
+      </td>
+      <td>{{ bus_stop.get_stop_type_display }}</td>
+      <td>{{ bus_stop.cenefa }}</td>
+      <td>{{ bus_stop.address }}</td>
+      <td>{{ bus_stop.audio }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endblock content %}
