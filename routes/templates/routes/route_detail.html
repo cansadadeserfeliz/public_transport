@@ -25,7 +25,6 @@
       <thead>
         <tr>
           <th scope="col">#</th>
-          <th scope="col">Code</th>
           <th scope="col">Name</th>
         </tr>
       </thead>
@@ -33,10 +32,9 @@
       {% for route_station in route_station_group %}
         <tr>
           <th scope="row">{{ route_station.position }}</th>
-          <td>{{ route_station.bus_station.code }}</td>
           <td>
-            <a href="{{ route_station.bus_station.get_absolute_url }}">
-              {{ route_station.bus_station.name }}
+            <a href="{{ route_station.bus_stop.get_absolute_url }}">
+              {{ route_station.bus_stop.name }}
             </a>
           </td>
         </tr>

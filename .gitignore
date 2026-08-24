@@ -122,3 +122,6 @@ dmypy.json
 # SDD
 .claude
 _bmad
+
+# Data
+data/

@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.utils.html import mark_safe
 
+from .models import BusStop
 from .models import Route
-from .models import BusStation
 from .models import RouteStations
 
 
@@ -15,7 +15,8 @@ class RouteAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'code_display',
-        'route_type',
+        'route_mode',
+        'service_tier',
         'created_at',
         'updated_at',
     )
@@ -28,12 +29,12 @@ class RouteAdmin(admin.ModelAdmin):
         )
 
 
-@admin.register(BusStation)
-class BusStationAdmin(admin.ModelAdmin):
-    search_fields = ('code', 'name')
+@admin.register(BusStop)
+class BusStopAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'cenefa', 'gtfs_stop_id')
     list_display = (
-        'code',
         'name',
+        'stop_type',
         'link',
         'created_at',
         'updated_at',
@@ -46,8 +47,8 @@ class RouteStationsAdmin(admin.ModelAdmin):
         'route',
         'direction',
         'position',
-        'bus_station',
+        'bus_stop',
         'created_at',
         'updated_at',
     )
-    list_select_related = ('route', 'bus_station')
+    list_select_related = ('route', 'bus_stop')
